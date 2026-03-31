@@ -1,5 +1,7 @@
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { db } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const STORAGE_KEY = "maths-app-v3";
 const QUESTIONS_PER_SHEET = 36;
@@ -299,6 +301,13 @@ export default function App() {
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState("");
 
+  // Cloud sync
+  const [syncPin, setSyncPin] = useState(loaded.syncPin || "");
+  const [syncPinInput, setSyncPinInput] = useState("");
+  const [syncStatus, setSyncStatus] = useState(""); // "", "syncing", "saved", "error"
+  const [showSyncSetup, setShowSyncSetup] = useState(!loaded.syncPin);
+  const syncTimeoutRef = useRef(null);
+
   // ── Derived state ───────────────────────────────────────────────────────────
   const profile = profiles[activeProfileId] || DEFAULT_PROFILES.daughter;
   const { totalQuestions, streak, bestStreak, lastCompletedDate, history, levelProgress = {}, badges = [] } = profile;
@@ -317,7 +326,28 @@ export default function App() {
 
   const problems = useMemo(() => buildProblems(currentLevelId, masteredIds, isSpeedPhase), [currentLevelId, masteredIds, isSpeedPhase]);
 
-  useEffect(() => { safeWrite({ profiles, activeProfileId, appSettings }); }, [profiles, activeProfileId, appSettings]);
+  useEffect(() => { safeWrite({ profiles, activeProfileId, appSettings, syncPin }); }, [profiles, activeProfileId, appSettings, syncPin]);
+
+  // Cloud sync — push to Firestore whenever profiles change (debounced 2s)
+  const pushToCloud = useCallback((pin, data) => {
+    if (!pin) return;
+    setSyncStatus("syncing");
+    clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        await setDoc(doc(db, "profiles", pin), data);
+        setSyncStatus("saved");
+        setTimeout(() => setSyncStatus(""), 3000);
+      } catch {
+        setSyncStatus("error");
+      }
+    }, 2000);
+  }, []);
+
+  useEffect(() => {
+    if (!syncPin) return;
+    pushToCloud(syncPin, { profiles, activeProfileId, appSettings });
+  }, [profiles, activeProfileId, appSettings, syncPin, pushToCloud]);
 
   useEffect(() => {
     if (!running) return;
@@ -347,6 +377,26 @@ export default function App() {
 
   function updateProfile(patch) {
     setProfiles(prev => ({ ...prev, [activeProfileId]: { ...prev[activeProfileId], ...patch } }));
+  }
+
+  async function connectSyncPin(pin) {
+    if (!pin || pin.length < 4) { setSyncStatus("error"); return; }
+    setSyncStatus("syncing");
+    try {
+      const snap = await getDoc(doc(db, "profiles", pin));
+      if (snap.exists()) {
+        const data = snap.data();
+        setProfiles(data.profiles);
+        setActiveProfileId(data.activeProfileId);
+        if (data.appSettings) setAppSettings(data.appSettings);
+      }
+      setSyncPin(pin);
+      setShowSyncSetup(false);
+      setSyncStatus("saved");
+      setTimeout(() => setSyncStatus(""), 3000);
+    } catch {
+      setSyncStatus("error");
+    }
   }
 
   function markQuestionStart(i) { if (!questionStartTimesRef.current[i]) questionStartTimesRef.current[i] = performance.now(); }
@@ -529,6 +579,50 @@ export default function App() {
             ))}
           </div>
         </div>
+
+        {/* ── Sync status bar ── */}
+        {syncPin && syncStatus && (
+          <div style={{ background: syncStatus==="saved"?"#dcfce7":syncStatus==="error"?"#fee2e2":"#fef9c3", border:`2px solid ${syncStatus==="saved"?"#16a34a":syncStatus==="error"?"#ef4444":"#f59e0b"}`, padding:"8px 14px", marginBottom:10, fontWeight:700, fontSize:12, display:"flex", alignItems:"center", gap:8 }}>
+            <span>{syncStatus==="saved"?"✓ Progress saved to cloud":syncStatus==="error"?"✗ Sync error — check connection":"↑ Syncing…"}</span>
+          </div>
+        )}
+
+        {/* ── Sync setup modal ── */}
+        {showSyncSetup && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1000, padding:16 }}>
+            <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:28, maxWidth:420, width:"100%", boxShadow:"8px 8px 0 #4f46e5" }}>
+              <div style={{ fontFamily:"'Press Start 2P', monospace", fontSize:13, color:"#4f46e5", marginBottom:16 }}>Cloud Sync Setup</div>
+              <p style={{ fontSize:13, fontWeight:700, color:"#374151", lineHeight:1.7, marginBottom:16 }}>
+                Choose a 6-digit PIN to sync your progress across devices.<br /><br />
+                <strong>Already have a PIN?</strong> Enter it to load your saved progress.<br />
+                <strong>New user?</strong> Pick any 6 digits — write it down and keep it safe!
+              </p>
+              <input
+                type="number"
+                inputMode="numeric"
+                maxLength={6}
+                value={syncPinInput}
+                onChange={e => setSyncPinInput(e.target.value.replace(/\D/g,"").slice(0,6))}
+                style={{ border:"3px solid #4f46e5", padding:"10px 14px", fontSize:20, fontFamily:"monospace", letterSpacing:6, width:"100%", marginBottom:14, boxSizing:"border-box" }}
+                placeholder="6-digit PIN"
+              />
+              {syncStatus==="error" && <p style={{ color:"#ef4444", fontWeight:700, marginBottom:10 }}>Error connecting — check your internet and try again.</p>}
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                <button onClick={() => connectSyncPin(syncPinInput)} className="fun-btn"
+                  style={{ border:"3px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:"'Press Start 2P',monospace", fontSize:9, padding:"12px 18px", cursor:"pointer", boxShadow:"4px 4px 0 #312e81" }}
+                  disabled={syncPinInput.length < 6}>
+                  {syncStatus==="syncing" ? "Connecting…" : "Connect"}
+                </button>
+                {syncPin && (
+                  <button onClick={() => setShowSyncSetup(false)} className="fun-btn"
+                    style={{ border:"3px solid #6b7280", background:"#6b7280", color:"#fff", fontFamily:"'Press Start 2P',monospace", fontSize:9, padding:"12px 18px", cursor:"pointer", boxShadow:"4px 4px 0 #374151" }}>
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Tabs ── */}
         <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:14 }}>
@@ -891,6 +985,24 @@ export default function App() {
                   </div>
                   {pinError && <p style={{ color:"#ef4444", fontWeight:700, marginTop:8 }}>{pinError}</p>}
                   {pinSuccess && <p style={{ color:"#16a34a", fontWeight:700, marginTop:8 }}>{pinSuccess}</p>}
+                </div>
+                <div style={{ ...S.flat, marginBottom:14 }}>
+                  <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>Cloud Sync PIN</div>
+                  <p style={S.sub}>Your progress syncs between devices using a 6-digit PIN you choose. Enter the same PIN on any device to load your progress.</p>
+                  {syncPin ? (
+                    <div style={{ marginTop:10 }}>
+                      <div style={{ fontWeight:700, marginBottom:8 }}>Current PIN: <span style={{ fontFamily:"monospace", fontSize:18, letterSpacing:4, background:"#f0f4ff", padding:"2px 8px", borderRadius:6 }}>{syncPin}</span></div>
+                      <div style={{ ...S.sub, marginBottom:10, color: syncStatus==="saved"?"#16a34a":syncStatus==="error"?"#ef4444":syncStatus==="syncing"?"#f59e0b":"#6b7280" }}>
+                        {syncStatus==="saved"?"✓ Saved to cloud":syncStatus==="error"?"✗ Sync error — check connection":syncStatus==="syncing"?"↑ Syncing…":"Cloud sync active"}
+                      </div>
+                      <button onClick={() => setShowSyncSetup(true)} className="fun-btn" style={S.btn("#6b7280","#374151")}>Change PIN</button>
+                    </div>
+                  ) : (
+                    <div style={{ marginTop:10 }}>
+                      <p style={{ ...S.sub, color:"#ef4444", marginBottom:8 }}>No sync PIN set — progress is only saved on this device.</p>
+                      <button onClick={() => setShowSyncSetup(true)} className="fun-btn" style={S.btn()}>Set up Sync PIN</button>
+                    </div>
+                  )}
                 </div>
                 <div style={S.flat}>
                   <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>Reset profiles</div>
