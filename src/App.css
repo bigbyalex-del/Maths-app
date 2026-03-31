@@ -1,0 +1,86 @@
+body {
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ── Pixel mascot animations (stepped for retro feel) ── */
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0px); }
+  25%       { transform: translateY(-10px); }
+  75%       { transform: translateY(-5px); }
+}
+@keyframes mascot-celebrate {
+  0%   { transform: scale(1)    rotate(0deg); }
+  25%  { transform: scale(1.2)  rotate(-10deg); }
+  50%  { transform: scale(1.2)  rotate(10deg); }
+  75%  { transform: scale(1.1)  rotate(-5deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
+@keyframes mascot-focus {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+.mascot-happy     { animation: mascot-float     2.4s steps(8)  infinite; }
+.mascot-celebrate { animation: mascot-celebrate 0.7s steps(4)  infinite; }
+.mascot-focus     { animation: mascot-focus     3.2s steps(6)  infinite; }
+
+/* ── Correct-card glow ── */
+@keyframes correct-glow {
+  0%, 100% { box-shadow: 4px 4px 0 #15803d; }
+  50%       { box-shadow: 4px 4px 0 #15803d, 0 0 18px rgba(34,197,94,0.55); }
+}
+.correct-card { animation: correct-glow 1.4s ease-in-out 3; }
+
+/* ── Pop-in for star badge ── */
+@keyframes emoji-pop {
+  0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
+  60%  { transform: scale(1.5) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1)   rotate(0deg);  opacity: 1; }
+}
+
+/* ── Confetti fall ── */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-50px) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(320px) rotate(900deg); opacity: 0; }
+}
+
+/* ── Celebration card pulse ── */
+@keyframes celebrate-pulse {
+  0%, 100% { transform: scale(1);    }
+  50%       { transform: scale(1.04); }
+}
+
+/* ── Spinning star ── */
+@keyframes star-spin {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Rainbow title cycle ── */
+@keyframes rainbow-bg {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ── Pixel button pulse for Start button ── */
+@keyframes btn-ready {
+  0%, 100% { transform: translateY(0);   box-shadow: 5px 5px 0 #111; }
+  50%       { transform: translateY(-4px); box-shadow: 5px 9px 0 #111; }
+}
+.action-btn-pulse { animation: btn-ready 1.8s ease-in-out infinite; }
+
+/* ── Pixel button press effect ── */
+.fun-btn {
+  transition: transform 0.07s, box-shadow 0.07s !important;
+  cursor: pointer;
+}
+.fun-btn:hover {
+  transform: translate(2px, 2px) !important;
+  filter: brightness(1.1) !important;
+}
+.fun-btn:active {
+  transform: translate(5px, 5px) !important;
+  box-shadow: 0 0 0 #111 !important;
+}
