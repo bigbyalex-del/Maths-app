@@ -212,20 +212,33 @@ function getEncouragement(accuracy, time, masteryTime, isSpeedPhase, speedPasses
 // ── Storage ───────────────────────────────────────────────────────────────────
 const EMPTY_PROFILE = (id, name) => ({ id, name, totalQuestions: 0, streak: 0, bestStreak: 0, lastCompletedDate: "", history: [], levelProgress: {}, badges: [], placementDone: false });
 
+// ── App phases ────────────────────────────────────────────────────────────────
+const PHASE = { WELCOME:"welcome", SIGNUP:"signup", PIN_ENTRY:"pin_entry", PLACEMENT:"placement", APP:"app" };
+
 // ── Placement test ────────────────────────────────────────────────────────────
-// 10 adaptive questions. Starts at stage 2 (mid difficulty).
-// Correct → move up; Wrong → move down. Final stage determines starting level.
+// Block-based adaptive: 3 questions per stage. Need 2/3 correct + speed to advance.
+// Speed is measured silently — no countdown shown to child.
 const PLACEMENT_STAGES = [
-  { levelId: "add-1",       label: "Basic addition",          questions: [{a:3,b:1,op:"+"},{a:7,b:2,op:"+"},{a:5,b:1,op:"+"}] },
-  { levelId: "make-10",     label: "Adding to 10",            questions: [{a:6,b:4,op:"+"},{a:7,b:3,op:"+"},{a:8,b:2,op:"+"}] },
-  { levelId: "add-mix-20",  label: "Adding to 20",            questions: [{a:13,b:5,op:"+"},{a:9,b:7,op:"+"},{a:8,b:6,op:"+"}] },
-  { levelId: "sub-1",       label: "Basic subtraction",       questions: [{a:8,b:3,op:"-"},{a:10,b:4,op:"-"},{a:12,b:5,op:"-"}] },
-  { levelId: "sub-mix-20",  label: "Subtraction to 20",       questions: [{a:15,b:7,op:"-"},{a:18,b:9,op:"-"},{a:14,b:6,op:"-"}] },
-  { levelId: "add-no-carry",label: "Adding bigger numbers",   questions: [{a:23,b:45,op:"+"},{a:34,b:52,op:"+"},{a:41,b:36,op:"+"}] },
-  { levelId: "add-carry",   label: "Adding with carrying",    questions: [{a:27,b:18,op:"+"},{a:36,b:27,op:"+"},{a:48,b:16,op:"+"}] },
-  { levelId: "times-2",     label: "Multiplication basics",   questions: [{a:3,b:5,op:"×"},{a:4,b:2,op:"×"},{a:6,b:10,op:"×"}] },
-  { levelId: "times-3-4",   label: "Times tables",            questions: [{a:6,b:7,op:"×"},{a:8,b:9,op:"×"},{a:7,b:8,op:"×"}] },
+  { levelId:"add-1",        label:"Basic addition",           speedSecs:8,  questions:[{a:3,b:1,op:"+"},{a:7,b:2,op:"+"},{a:4,b:1,op:"+"}] },
+  { levelId:"make-10",      label:"Adding to 10",             speedSecs:9,  questions:[{a:6,b:4,op:"+"},{a:7,b:3,op:"+"},{a:5,b:5,op:"+"}] },
+  { levelId:"add-mix-20",   label:"Adding to 20",             speedSecs:11, questions:[{a:13,b:5,op:"+"},{a:9,b:7,op:"+"},{a:8,b:8,op:"+"}] },
+  { levelId:"sub-mix-20",   label:"Subtraction to 20",        speedSecs:12, questions:[{a:15,b:7,op:"-"},{a:18,b:9,op:"-"},{a:14,b:8,op:"-"}] },
+  { levelId:"add-carry",    label:"Adding with carrying",     speedSecs:16, questions:[{a:27,b:18,op:"+"},{a:36,b:27,op:"+"},{a:48,b:16,op:"+"}] },
+  { levelId:"sub-borrow",   label:"Subtracting bigger numbers",speedSecs:16,questions:[{a:52,b:27,op:"-"},{a:71,b:38,op:"-"},{a:63,b:26,op:"-"}] },
+  { levelId:"times-2",      label:"Multiplication basics",    speedSecs:9,  questions:[{a:3,b:5,op:"×"},{a:4,b:2,op:"×"},{a:6,b:10,op:"×"}] },
+  { levelId:"times-3-4",    label:"Times tables (3s & 4s)",   speedSecs:12, questions:[{a:3,b:7,op:"×"},{a:4,b:8,op:"×"},{a:3,b:9,op:"×"}] },
+  { levelId:"times-6-7",    label:"Times tables (6s & 7s)",   speedSecs:14, questions:[{a:6,b:7,op:"×"},{a:7,b:8,op:"×"},{a:6,b:9,op:"×"}] },
 ];
+
+function ageToStartStage(age) {
+  const n = parseInt(age, 10);
+  if (n <= 6) return 0;
+  if (n <= 7) return 1;
+  if (n <= 8) return 2;
+  if (n <= 9) return 3;
+  if (n <= 10) return 4;
+  return 6;
+}
 
 function buildPlacementProgress(placedLevelId) {
   const placedIdx = flatLevels.findIndex(l => l.id === placedLevelId);
@@ -236,70 +249,248 @@ function buildPlacementProgress(placedLevelId) {
   return progress;
 }
 
-function PlacementTest({ profileName, onComplete, onSkip }) {
-  const TOTAL_Q = 10;
-  const START_STAGE = 2;
-  const [stageIdx, setStageIdx] = useState(START_STAGE);
-  const [qNum, setQNum] = useState(0);
-  const [qInStage, setQInStage] = useState(0);
+// ── WelcomeScreen ─────────────────────────────────────────────────────────────
+function WelcomeScreen({ onNew, onReturn }) {
+  const PX = "'Press Start 2P', monospace";
+  return (
+    <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ background:"#fff", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:36, maxWidth:440, width:"100%", textAlign:"center" }}>
+        <div style={{ fontSize:64, marginBottom:8 }}>⭐</div>
+        <h1 style={{ fontFamily:PX, fontSize:14, color:"#4f46e5", lineHeight:1.8, marginBottom:8 }}>Get Maths Mastery</h1>
+        <p style={{ fontSize:14, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:32 }}>
+          Accuracy first, speed second.<br/>Level up like a champion!
+        </p>
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <button onClick={onNew} style={{ border:"4px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:10, padding:"16px", cursor:"pointer", boxShadow:"5px 5px 0 #312e81", lineHeight:1.8 }}>
+            I'm new here
+          </button>
+          <button onClick={onReturn} style={{ border:"4px solid #111", background:"#fff", color:"#111", fontFamily:PX, fontSize:10, padding:"16px", cursor:"pointer", boxShadow:"5px 5px 0 #111", lineHeight:1.8 }}>
+            I have a PIN
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── SignupScreen ──────────────────────────────────────────────────────────────
+function SignupScreen({ onComplete, onBack }) {
+  const PX = "'Press Start 2P', monospace";
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [pin, setPin] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [error, setError] = useState("");
+
+  function nextStep() {
+    if (step === 1) {
+      if (!name.trim()) { setError("Please enter a name."); return; }
+      if (!age || parseInt(age) < 4 || parseInt(age) > 16) { setError("Please enter an age between 4 and 16."); return; }
+      setError(""); setStep(2);
+    } else if (step === 2) {
+      if (!/^\d{6}$/.test(pin)) { setError("PIN must be exactly 6 digits."); return; }
+      setError(""); setStep(3);
+    } else if (step === 3) {
+      if (pin !== pinConfirm) { setError("PINs don't match — try again."); setPinConfirm(""); return; }
+      onComplete({ name: name.trim(), age: parseInt(age), pin });
+    }
+  }
+
+  const inputStyle = { border:"3px solid #4f46e5", padding:"12px 16px", fontSize:18, fontFamily:"'Nunito',sans-serif", fontWeight:700, width:"100%", boxSizing:"border-box", outline:"none" };
+  const btnStyle = { border:"4px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:10, padding:"14px", cursor:"pointer", boxShadow:"5px 5px 0 #312e81", width:"100%", lineHeight:1.8 };
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ background:"#fff", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:32, maxWidth:420, width:"100%" }}>
+        <div style={{ display:"flex", gap:8, marginBottom:24 }}>
+          {[1,2,3].map(s => <div key={s} style={{ flex:1, height:6, borderRadius:3, background: s<=step?"#4f46e5":"#e5e7eb", transition:"background 0.3s" }} />)}
+        </div>
+
+        {step === 1 && (
+          <>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:20 }}>Step 1: Who are you?</div>
+            <div style={{ marginBottom:14 }}>
+              <label style={{ fontSize:13, fontWeight:800, color:"#374151", display:"block", marginBottom:6 }}>Your name</label>
+              <input autoFocus value={name} onChange={e => { setName(e.target.value); setError(""); }}
+                onKeyDown={e => e.key==="Enter" && nextStep()}
+                style={inputStyle} placeholder="e.g. Emma" maxLength={30} />
+            </div>
+            <div style={{ marginBottom:20 }}>
+              <label style={{ fontSize:13, fontWeight:800, color:"#374151", display:"block", marginBottom:6 }}>Your age</label>
+              <input type="number" value={age} onChange={e => { setAge(e.target.value); setError(""); }}
+                onKeyDown={e => e.key==="Enter" && nextStep()}
+                style={{ ...inputStyle, width:120 }} placeholder="e.g. 8" min={4} max={16} />
+            </div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:12 }}>Step 2: Choose a PIN</div>
+            <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
+              Your 6-digit PIN saves your progress across all your devices. <strong>Write it down somewhere safe!</strong>
+            </p>
+            <input autoFocus type="number" inputMode="numeric" value={pin}
+              onChange={e => { setPin(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }}
+              onKeyDown={e => e.key==="Enter" && nextStep()}
+              style={{ ...inputStyle, fontSize:28, letterSpacing:8, textAlign:"center" }} placeholder="——————" maxLength={6} />
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:12 }}>Step 3: Confirm PIN</div>
+            <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
+              Your PIN is <strong style={{ fontFamily:"monospace", fontSize:20, letterSpacing:4 }}>{pin}</strong><br/>
+              Type it again to confirm.
+            </p>
+            <input autoFocus type="number" inputMode="numeric" value={pinConfirm}
+              onChange={e => { setPinConfirm(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }}
+              onKeyDown={e => e.key==="Enter" && nextStep()}
+              style={{ ...inputStyle, fontSize:28, letterSpacing:8, textAlign:"center" }} placeholder="——————" maxLength={6} />
+          </>
+        )}
+
+        {error && <p style={{ color:"#ef4444", fontWeight:800, fontSize:13, marginTop:10 }}>{error}</p>}
+
+        <div style={{ display:"flex", gap:10, marginTop:20 }}>
+          <button onClick={() => step===1 ? onBack() : setStep(s=>s-1)}
+            style={{ border:"3px solid #d1d5db", background:"#fff", color:"#6b7280", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>
+            Back
+          </button>
+          <button onClick={nextStep} style={{ ...btnStyle, flex:1, padding:"12px" }}>
+            {step === 3 ? "Create account" : "Next →"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PinEntryScreen ────────────────────────────────────────────────────────────
+function PinEntryScreen({ onSubmit, onBack, loading, error }) {
+  const PX = "'Press Start 2P', monospace";
+  const [pin, setPin] = useState("");
+  return (
+    <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ background:"#fff", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:32, maxWidth:400, width:"100%", textAlign:"center" }}>
+        <div style={{ fontSize:48, marginBottom:12 }}>🔑</div>
+        <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:16 }}>Enter your PIN</div>
+        <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, marginBottom:20 }}>Type your 6-digit PIN to load your progress on this device.</p>
+        <input autoFocus type="number" inputMode="numeric" value={pin}
+          onChange={e => setPin(e.target.value.replace(/\D/g,"").slice(0,6))}
+          onKeyDown={e => e.key==="Enter" && pin.length===6 && onSubmit(pin)}
+          style={{ border:"3px solid #4f46e5", padding:"12px", fontSize:28, fontFamily:"monospace", letterSpacing:8, textAlign:"center", width:"100%", boxSizing:"border-box", marginBottom:16 }}
+          placeholder="——————" maxLength={6} />
+        {error && <p style={{ color:"#ef4444", fontWeight:800, fontSize:13, marginBottom:12 }}>{error}</p>}
+        <div style={{ display:"flex", gap:10 }}>
+          <button onClick={onBack} style={{ border:"3px solid #d1d5db", background:"#fff", color:"#6b7280", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>Back</button>
+          <button onClick={() => onSubmit(pin)} disabled={pin.length!==6||loading}
+            style={{ flex:1, border:"4px solid #4f46e5", background: pin.length===6&&!loading?"#4f46e5":"#e5e7eb", color: pin.length===6&&!loading?"#fff":"#9ca3af", fontFamily:PX, fontSize:10, padding:"12px", cursor: pin.length===6&&!loading?"pointer":"not-allowed", boxShadow: pin.length===6&&!loading?"5px 5px 0 #312e81":"none" }}>
+            {loading ? "Loading…" : "Load Progress"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PlacementTest (block-based, speed-measured) ───────────────────────────────
+// 3 questions per stage. Need 2/3 correct + avg speed ≤ threshold to advance.
+// Speed measured silently — no countdown shown to child.
+function PlacementTest({ profileName, startStage, onComplete, onParentOverride, parentPin }) {
+  const PX = "'Press Start 2P', monospace";
+  const [stageIdx, setStageIdx] = useState(Math.min(startStage, PLACEMENT_STAGES.length - 1));
+  const [blockQ, setBlockQ] = useState(0);          // 0-2 within current block
+  const [blockResults, setBlockResults] = useState([]); // { correct, secs }
   const [answer, setAnswer] = useState("");
-  const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
+  const [feedback, setFeedback] = useState(null);
   const [done, setDone] = useState(false);
-  const [finalStage, setFinalStage] = useState(START_STAGE);
+  const [placedStageIdx, setPlacedStageIdx] = useState(startStage);
+  const [totalQ, setTotalQ] = useState(0);
+  const [showParentOverride, setShowParentOverride] = useState(false);
+  const [parentEntry, setParentEntry] = useState("");
+  const [parentErr, setParentErr] = useState("");
+  const qStartRef = useRef(performance.now());
   const inputRef = useRef(null);
 
   const stage = PLACEMENT_STAGES[stageIdx];
-  const q = stage.questions[qInStage % stage.questions.length];
+  const q = stage.questions[blockQ % stage.questions.length];
   const correctAnswer = computeAnswer(q.a, q.b, q.op);
 
-  useEffect(() => { if (!done && !feedback) inputRef.current?.focus(); }, [qNum, done, feedback]);
+  useEffect(() => {
+    if (!done && !feedback && !showParentOverride) {
+      qStartRef.current = performance.now();
+      inputRef.current?.focus();
+    }
+  }, [blockQ, stageIdx, done, feedback, showParentOverride]);
 
   function submit() {
-    if (feedback) return;
+    if (feedback || !answer) return;
+    const secs = (performance.now() - qStartRef.current) / 1000;
     const isCorrect = normalizeAnswer(answer) === normalizeAnswer(correctAnswer);
     setFeedback(isCorrect ? "correct" : "wrong");
-    const nextStage = isCorrect ? Math.min(stageIdx + 1, PLACEMENT_STAGES.length - 1) : Math.max(stageIdx - 1, 0);
+    const newResults = [...blockResults, { correct: isCorrect, secs }];
     setTimeout(() => {
-      const nextQ = qNum + 1;
-      if (nextQ >= TOTAL_Q) {
-        setFinalStage(nextStage);
-        setDone(true);
-      } else {
-        setStageIdx(nextStage);
-        setQInStage(prev => prev + 1);
-        setQNum(nextQ);
+      const nextQ = blockQ + 1;
+      const nextTotal = totalQ + 1;
+      if (nextQ < 3) {
+        // More questions in this block
+        setBlockQ(nextQ);
+        setBlockResults(newResults);
+        setTotalQ(nextTotal);
         setAnswer("");
         setFeedback(null);
+      } else {
+        // Block complete — evaluate
+        const correct = newResults.filter(r => r.correct).length;
+        const avgSecs = newResults.reduce((s, r) => s + r.secs, 0) / newResults.length;
+        const passed = correct >= 2 && avgSecs <= stage.speedSecs;
+        const slowButCorrect = correct >= 2 && avgSecs > stage.speedSecs;
+        if (passed && stageIdx < PLACEMENT_STAGES.length - 1) {
+          // Advance to next stage
+          setStageIdx(s => s + 1);
+          setBlockQ(0);
+          setBlockResults([]);
+          setTotalQ(nextTotal);
+          setAnswer("");
+          setFeedback(null);
+        } else {
+          // Place here — if slow but correct, drop one stage
+          const finalIdx = slowButCorrect && stageIdx > 0 ? stageIdx - 1 : stageIdx;
+          setPlacedStageIdx(finalIdx);
+          setDone(true);
+        }
       }
-    }, 700);
+    }, 800);
   }
 
-  const PX = "'Press Start 2P', monospace";
-  const progress = Math.round(((qNum) / TOTAL_Q) * 100);
-
   if (done) {
-    const placedLevel = PLACEMENT_STAGES[finalStage];
+    const placedLevel = PLACEMENT_STAGES[placedStageIdx];
     const placedFlat = flatLevels.find(l => l.id === placedLevel.levelId);
-    const placedIdx = flatLevels.findIndex(l => l.id === placedLevel.levelId);
+    const placedFlatIdx = flatLevels.findIndex(l => l.id === placedLevel.levelId);
     return (
-      <div style={{ position:"fixed", inset:0, background:"rgba(15,15,35,0.97)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2000, padding:16 }}>
+      <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
         <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5", textAlign:"center" }}>
-          <div style={{ fontSize:48, marginBottom:12 }}>🎯</div>
-          <div style={{ fontFamily:PX, fontSize:13, color:"#4f46e5", marginBottom:16 }}>Placement Complete!</div>
-          <p style={{ fontSize:14, fontWeight:700, color:"#374151", lineHeight:1.7, marginBottom:8 }}>
-            Great work, {profileName}!
+          <div style={{ fontSize:56, marginBottom:12 }}>🎯</div>
+          <div style={{ fontFamily:PX, fontSize:12, color:"#4f46e5", marginBottom:16 }}>Placement Complete!</div>
+          <p style={{ fontSize:15, fontWeight:800, color:"#111", marginBottom:8 }}>Well done, {profileName}!</p>
+          <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
+            Based on your speed and accuracy, we're starting you here:
           </p>
-          <p style={{ fontSize:13, color:"#6b7280", lineHeight:1.7, marginBottom:20 }}>
-            Based on your answers, we're starting you at:
-          </p>
-          <div style={{ background:"#f0f4ff", border:"3px solid #4f46e5", padding:"16px 20px", marginBottom:20 }}>
-            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:6 }}>{placedFlat?.sectionName}</div>
-            <div style={{ fontWeight:900, fontSize:18, color:"#111" }}>{placedFlat?.title}</div>
-            {placedIdx > 0 && <p style={{ fontSize:12, color:"#6b7280", marginTop:8 }}>The {placedIdx} easier level{placedIdx!==1?"s":""} before this have been unlocked for practice.</p>}
+          <div style={{ background:"#f0f4ff", border:"3px solid #4f46e5", padding:"16px 20px", marginBottom:8 }}>
+            <div style={{ fontFamily:PX, fontSize:10, color:"#4f46e5", marginBottom:6 }}>{placedFlat?.sectionName}</div>
+            <div style={{ fontWeight:900, fontSize:20, color:"#111" }}>{placedFlat?.title}</div>
           </div>
+          {placedFlatIdx > 0 && (
+            <p style={{ fontSize:12, color:"#6b7280", marginBottom:20 }}>
+              {placedFlatIdx} easier level{placedFlatIdx!==1?"s":""} before this have been unlocked for extra practice.
+            </p>
+          )}
           <button onClick={() => onComplete(buildPlacementProgress(placedLevel.levelId))}
-            style={{ border:"3px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:9, padding:"14px 24px", cursor:"pointer", boxShadow:"4px 4px 0 #312e81", width:"100%" }}>
-            Let's Go!
+            style={{ border:"4px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:10, padding:"16px", cursor:"pointer", boxShadow:"5px 5px 0 #312e81", width:"100%", lineHeight:1.8 }}>
+            Let's Go! ⭐
           </button>
         </div>
       </div>
@@ -307,66 +498,96 @@ function PlacementTest({ profileName, onComplete, onSkip }) {
   }
 
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(15,15,35,0.97)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2000, padding:16 }}>
+    <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5" }}>
-        <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:6 }}>Placement Test</div>
-        <p style={{ fontSize:12, color:"#6b7280", marginBottom:16 }}>Help us find your perfect starting level, {profileName}!</p>
+        <div style={{ fontFamily:PX, fontSize:10, color:"#4f46e5", marginBottom:4 }}>Placement Test</div>
+        <p style={{ fontSize:12, color:"#6b7280", fontWeight:700, marginBottom:16 }}>Finding your perfect starting level, {profileName}!</p>
 
-        {/* Progress bar */}
-        <div style={{ background:"#e5e7eb", height:10, borderRadius:5, marginBottom:20 }}>
-          <div style={{ background:"#4f46e5", height:10, borderRadius:5, width:`${progress}%`, transition:"width 0.3s" }} />
+        {/* Stage progress */}
+        <div style={{ display:"flex", gap:4, marginBottom:8 }}>
+          {PLACEMENT_STAGES.map((_, i) => (
+            <div key={i} style={{ flex:1, height:8, borderRadius:4, background: i < stageIdx?"#4f46e5":i===stageIdx?"#a5b4fc":"#e5e7eb", transition:"background 0.3s" }} />
+          ))}
         </div>
-        <div style={{ fontSize:11, color:"#9ca3af", marginBottom:20 }}>Question {qNum + 1} of {TOTAL_Q} — {stage.label}</div>
+        {/* Block progress dots */}
+        <div style={{ display:"flex", gap:8, marginBottom:20, justifyContent:"center" }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{ width:14, height:14, borderRadius:"50%", border:"2px solid #4f46e5",
+              background: i < blockQ ? (blockResults[i]?.correct ? "#22c55e" : "#ef4444") : i===blockQ ? "#4f46e5" : "#fff", transition:"background 0.3s" }} />
+          ))}
+        </div>
+        <div style={{ fontSize:12, color:"#9ca3af", fontWeight:700, marginBottom:20, textAlign:"center" }}>
+          {stage.label} — Question {blockQ + 1} of 3
+        </div>
 
-        {/* Question */}
         <div style={{ textAlign:"center", marginBottom:24 }}>
-          <div style={{ fontFamily:PX, fontSize:28, color:"#111", marginBottom:20, letterSpacing:2 }}>
+          <div style={{ fontFamily:PX, fontSize:32, color:"#111", marginBottom:20, letterSpacing:2, lineHeight:1.6 }}>
             {q.a} {q.op} {q.b} = ?
           </div>
-          <input
-            ref={inputRef}
-            type="number"
-            inputMode="numeric"
-            value={answer}
+          <input ref={inputRef} type="number" inputMode="numeric" value={answer}
             onChange={e => setAnswer(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && answer !== "" && submit()}
-            style={{ border:`3px solid ${feedback==="correct"?"#16a34a":feedback==="wrong"?"#ef4444":"#4f46e5"}`, padding:"12px 16px", fontSize:24, fontFamily:"monospace", width:120, textAlign:"center", background: feedback==="correct"?"#dcfce7":feedback==="wrong"?"#fee2e2":"#fff", transition:"all 0.2s" }}
-            disabled={!!feedback}
-          />
+            onKeyDown={e => e.key==="Enter" && answer!=="" && !feedback && submit()}
+            style={{ border:`3px solid ${feedback==="correct"?"#16a34a":feedback==="wrong"?"#ef4444":"#4f46e5"}`, padding:"12px 16px", fontSize:28, fontFamily:"monospace", width:140, textAlign:"center", background:feedback==="correct"?"#dcfce7":feedback==="wrong"?"#fee2e2":"#fff", transition:"all 0.2s", outline:"none" }}
+            disabled={!!feedback} />
           {feedback && (
-            <div style={{ marginTop:12, fontWeight:900, fontSize:16, color: feedback==="correct"?"#16a34a":"#ef4444" }}>
+            <div style={{ marginTop:12, fontWeight:900, fontSize:15, color:feedback==="correct"?"#16a34a":"#ef4444" }}>
               {feedback==="correct" ? "✓ Correct!" : `✗ Answer: ${correctAnswer}`}
             </div>
           )}
         </div>
 
-        <div style={{ display:"flex", gap:10 }}>
-          <button onClick={submit} disabled={answer===""||!!feedback}
-            style={{ flex:1, border:"3px solid #4f46e5", background: answer===""||feedback?"#e5e7eb":"#4f46e5", color: answer===""||feedback?"#9ca3af":"#fff", fontFamily:PX, fontSize:9, padding:"12px", cursor: answer===""||feedback?"not-allowed":"pointer", boxShadow: answer===""||feedback?"none":"4px 4px 0 #312e81" }}>
-            Submit
-          </button>
-          <button onClick={onSkip}
-            style={{ border:"3px solid #d1d5db", background:"#fff", color:"#9ca3af", fontFamily:PX, fontSize:8, padding:"12px 14px", cursor:"pointer" }}>
-            Skip
-          </button>
-        </div>
+        <button onClick={submit} disabled={answer===""||!!feedback}
+          style={{ width:"100%", border:"4px solid #4f46e5", background:answer===""||feedback?"#e5e7eb":"#4f46e5", color:answer===""||feedback?"#9ca3af":"#fff", fontFamily:PX, fontSize:10, padding:"14px", cursor:answer===""||feedback?"not-allowed":"pointer", boxShadow:answer===""||feedback?"none":"5px 5px 0 #312e81", lineHeight:1.8 }}>
+          Submit
+        </button>
+
+        {/* Parent override */}
+        {!showParentOverride && (
+          <p onClick={() => setShowParentOverride(true)} style={{ fontSize:11, color:"#d1d5db", textAlign:"center", marginTop:16, cursor:"pointer" }}>Parent override</p>
+        )}
+        {showParentOverride && (
+          <div style={{ marginTop:16, padding:"12px", background:"#f9fafb", border:"2px solid #e5e7eb" }}>
+            <p style={{ fontSize:12, fontWeight:700, color:"#6b7280", marginBottom:8 }}>Enter parent PIN to skip:</p>
+            <div style={{ display:"flex", gap:8 }}>
+              <input type="password" inputMode="numeric" maxLength={4} value={parentEntry}
+                onChange={e => { setParentEntry(e.target.value.replace(/\D/g,"").slice(0,4)); setParentErr(""); }}
+                style={{ flex:1, border:"2px solid #4f46e5", padding:"8px", fontSize:16, textAlign:"center" }} placeholder="PIN" />
+              <button onClick={() => { if (parentEntry===parentPin) onParentOverride(); else setParentErr("Wrong PIN"); }}
+                style={{ border:"2px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:8, padding:"8px 12px", cursor:"pointer" }}>
+                Skip
+              </button>
+            </div>
+            {parentErr && <p style={{ color:"#ef4444", fontSize:12, fontWeight:700, marginTop:6 }}>{parentErr}</p>}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-const DEFAULT_PROFILES = { daughter: EMPTY_PROFILE("daughter", "My Daughter"), test: EMPTY_PROFILE("test", "Test Account") };
+
 function safeRead() { try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
 function safeWrite(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
 function loadState() {
   const s = safeRead();
-  return {
-    profiles: {
-      daughter: { ...DEFAULT_PROFILES.daughter, ...(s?.profiles?.daughter || {}) },
-      test: { ...DEFAULT_PROFILES.test, ...(s?.profiles?.test || {}) },
-    },
-    activeProfileId: s?.activeProfileId || "daughter",
-    appSettings: { ...DEFAULT_APP_SETTINGS, ...(s?.appSettings || {}) },
-  };
+  const syncPin = s?.syncPin || "";
+  const rawProfiles = s?.profiles || {};
+  // Migrate existing profiles — mark placementDone if they already have progress
+  const profiles = {};
+  for (const [id, p] of Object.entries(rawProfiles)) {
+    profiles[id] = {
+      ...EMPTY_PROFILE(id, p.name || id),
+      ...p,
+      placementDone: p.placementDone || (p.history?.length > 0) || (Object.keys(p.levelProgress || {}).length > 0),
+    };
+  }
+  const activeProfileId = s?.activeProfileId || "";
+  const appSettings = { ...DEFAULT_APP_SETTINGS, ...(s?.appSettings || {}) };
+  // Determine initial phase
+  let initialPhase = PHASE.WELCOME;
+  if (syncPin && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
+  else if (syncPin && profiles[activeProfileId]) initialPhase = PHASE.PLACEMENT;
+  else if (!syncPin && activeProfileId && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
+  return { profiles, activeProfileId, appSettings, syncPin, initialPhase };
 }
 
 // ── Misc helpers ──────────────────────────────────────────────────────────────
@@ -420,11 +641,15 @@ function CelebrationOverlay({ show, onDismiss, encouragement, newBadges }) {
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
   const loaded = loadState();
+  const [appPhase, setAppPhase] = useState(loaded.initialPhase);
   const [profiles, setProfiles] = useState(loaded.profiles);
   const [activeProfileId, setActiveProfileId] = useState(loaded.activeProfileId);
   const [appSettings, setAppSettings] = useState(loaded.appSettings);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [practiceId, setPracticeId] = useState(null); // null = active level
+  // PIN entry screen state
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinLoadError, setPinLoadError] = useState("");
 
   // Worksheet state
   const [answers, setAnswers] = useState({});
@@ -444,18 +669,15 @@ export default function App() {
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState("");
 
-  // Placement test
-  const [showPlacement, setShowPlacement] = useState(false);
+  // Placement test (no local state needed — handled by appPhase)
 
   // Cloud sync
   const [syncPin, setSyncPin] = useState(loaded.syncPin || "");
-  const [syncPinInput, setSyncPinInput] = useState("");
   const [syncStatus, setSyncStatus] = useState(""); // "", "syncing", "saved", "error"
-  const [showSyncSetup, setShowSyncSetup] = useState(!loaded.syncPin);
   const syncTimeoutRef = useRef(null);
 
   // ── Derived state ───────────────────────────────────────────────────────────
-  const profile = profiles[activeProfileId] || DEFAULT_PROFILES.daughter;
+  const profile = profiles[activeProfileId] || EMPTY_PROFILE(activeProfileId || "user", "Player");
   const { totalQuestions, streak, bestStreak, lastCompletedDate, history, levelProgress = {}, badges = [] } = profile;
 
   const activeLevelId = useMemo(() => getActiveLevelId(levelProgress), [levelProgress]);
@@ -474,15 +696,6 @@ export default function App() {
 
   useEffect(() => { safeWrite({ profiles, activeProfileId, appSettings, syncPin }); }, [profiles, activeProfileId, appSettings, syncPin]);
 
-  // Show placement test for new profiles that haven't done it yet
-  useEffect(() => {
-    const p = profiles[activeProfileId];
-    if (p && !p.placementDone && Object.keys(p.levelProgress || {}).length === 0) {
-      setShowPlacement(true);
-    } else {
-      setShowPlacement(false);
-    }
-  }, [activeProfileId, profiles]);
 
   // Cloud sync — push to Firestore whenever profiles change (debounced 2s)
   const pushToCloud = useCallback((pin, data) => {
@@ -537,33 +750,50 @@ export default function App() {
 
   function completePlacement(levelProgress) {
     updateProfile({ levelProgress, placementDone: true });
-    setShowPlacement(false);
+    setAppPhase(PHASE.APP);
     startSession();
   }
 
   function skipPlacement() {
     updateProfile({ placementDone: true });
-    setShowPlacement(false);
+    setAppPhase(PHASE.APP);
   }
 
-  async function connectSyncPin(pin) {
-    if (!pin || pin.length < 4) { setSyncStatus("error"); return; }
-    setSyncStatus("syncing");
+  function handleSignup({ name, age, pin }) {
+    const id = pin;
+    const newProfile = { ...EMPTY_PROFILE(id, name), age };
+    setProfiles(prev => ({ ...prev, [id]: newProfile }));
+    setActiveProfileId(id);
+    setSyncPin(pin);
+    setAppPhase(PHASE.PLACEMENT);
+  }
+
+  async function handlePinEntry(pin) {
+    setPinLoading(true);
+    setPinLoadError("");
     try {
       const snap = await getDoc(doc(db, "profiles", pin));
       if (snap.exists()) {
         const data = snap.data();
-        setProfiles(data.profiles);
-        setActiveProfileId(data.activeProfileId);
+        setProfiles(data.profiles || {});
+        setActiveProfileId(data.activeProfileId || pin);
         if (data.appSettings) setAppSettings(data.appSettings);
+        setSyncPin(pin);
+        const profile = (data.profiles || {})[data.activeProfileId || pin];
+        setAppPhase(profile?.placementDone ? PHASE.APP : PHASE.PLACEMENT);
+      } else {
+        // No cloud data — create fresh profile with this PIN
+        const id = pin;
+        const newProfile = EMPTY_PROFILE(id, "My Account");
+        setProfiles(prev => ({ ...prev, [id]: newProfile }));
+        setActiveProfileId(id);
+        setSyncPin(pin);
+        setAppPhase(PHASE.PLACEMENT);
       }
-      setSyncPin(pin);
-      setShowSyncSetup(false);
-      setSyncStatus("saved");
-      setTimeout(() => setSyncStatus(""), 3000);
     } catch {
-      setSyncStatus("error");
+      setPinLoadError("Could not connect. Check your internet and try again.");
     }
+    setPinLoading(false);
   }
 
   function markQuestionStart(i) { if (!questionStartTimesRef.current[i]) questionStartTimesRef.current[i] = performance.now(); }
@@ -711,6 +941,16 @@ export default function App() {
   const stateLabel = { [LS.LOCKED]:"Locked", [LS.ACCURACY]:"Accuracy Phase", [LS.SPEED]:"Speed Phase", [LS.MASTERED]:"Mastered" };
   const stateColor = { [LS.LOCKED]:"#9ca3af", [LS.ACCURACY]:"#3b82f6", [LS.SPEED]:"#f59e0b", [LS.MASTERED]:"#22c55e" };
 
+  // ── Phase routing ────────────────────────────────────────────────────────────
+  if (appPhase === PHASE.WELCOME) return <WelcomeScreen onNew={() => setAppPhase(PHASE.SIGNUP)} onReturn={() => setAppPhase(PHASE.PIN_ENTRY)} />;
+  if (appPhase === PHASE.SIGNUP) return <SignupScreen onComplete={handleSignup} onBack={() => setAppPhase(PHASE.WELCOME)} />;
+  if (appPhase === PHASE.PIN_ENTRY) return <PinEntryScreen onSubmit={handlePinEntry} onBack={() => setAppPhase(PHASE.WELCOME)} loading={pinLoading} error={pinLoadError} />;
+  if (appPhase === PHASE.PLACEMENT) {
+    const prof = profiles[activeProfileId] || {};
+    const startStage = ageToStartStage(prof.age || 8);
+    return <PlacementTest profileName={prof.name || "there"} startStage={startStage} onComplete={completePlacement} onParentOverride={skipPlacement} parentPin={appSettings.parentPin} />;
+  }
+
   return (
     <div style={S.page}>
       <div style={S.wrap}>
@@ -720,16 +960,14 @@ export default function App() {
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:16, flexWrap:"wrap" }}>
             <div>
               <h1 style={{ ...S.h(17), color:"#ffd700" }}>Get Maths Mastery</h1>
-              <p style={{ color:"#c7d2fe", fontSize:13, fontWeight:700, marginTop:5 }}>Accuracy first, then speed — that's how champions are made!</p>
+              <p style={{ color:"#c7d2fe", fontSize:13, fontWeight:700, marginTop:5 }}>
+                Welcome back, {profile.name}! Accuracy first, then speed.
+              </p>
             </div>
-            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-              {Object.values(profiles).map(p => (
-                <button key={p.id} onClick={() => { setActiveProfileId(p.id); setPracticeId(null); startSession(); setActiveTab("dashboard"); }} className="fun-btn"
-                  style={{ border:BD, padding:"9px 14px", cursor:"pointer", fontFamily:PX, fontSize:8, lineHeight:1.8, background:activeProfileId===p.id?"#ffd700":"rgba(255,255,255,0.15)", color:activeProfileId===p.id?"#111":"#fff", boxShadow:activeProfileId===p.id?"5px 5px 0 #b8860b":"5px 5px 0 rgba(0,0,0,0.3)" }}>
-                  {p.name}
-                </button>
-              ))}
-            </div>
+            <button onClick={() => { if (window.confirm("Switch user? You'll go back to the login screen.")) { setAppPhase(PHASE.WELCOME); } }} className="fun-btn"
+              style={{ border:BD, padding:"9px 14px", cursor:"pointer", fontFamily:PX, fontSize:8, lineHeight:1.8, background:"rgba(255,255,255,0.15)", color:"#fff", boxShadow:"5px 5px 0 rgba(0,0,0,0.3)", alignSelf:"flex-start" }}>
+              Switch User
+            </button>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))", gap:10, marginTop:14 }}>
             {[
@@ -752,52 +990,6 @@ export default function App() {
           <div style={{ background: syncStatus==="saved"?"#dcfce7":syncStatus==="error"?"#fee2e2":"#fef9c3", border:`2px solid ${syncStatus==="saved"?"#16a34a":syncStatus==="error"?"#ef4444":"#f59e0b"}`, padding:"8px 14px", marginBottom:10, fontWeight:700, fontSize:12, display:"flex", alignItems:"center", gap:8 }}>
             <span>{syncStatus==="saved"?"✓ Progress saved to cloud":syncStatus==="error"?"✗ Sync error — check connection":"↑ Syncing…"}</span>
           </div>
-        )}
-
-        {/* ── Sync setup modal ── */}
-        {showSyncSetup && (
-          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1000, padding:16 }}>
-            <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:28, maxWidth:420, width:"100%", boxShadow:"8px 8px 0 #4f46e5" }}>
-              <div style={{ fontFamily:"'Press Start 2P', monospace", fontSize:13, color:"#4f46e5", marginBottom:16 }}>Cloud Sync Setup</div>
-              <p style={{ fontSize:13, fontWeight:700, color:"#374151", lineHeight:1.7, marginBottom:16 }}>
-                Choose a 6-digit PIN to sync your progress across devices.<br /><br />
-                <strong>Already have a PIN?</strong> Enter it to load your saved progress.<br />
-                <strong>New user?</strong> Pick any 6 digits — write it down and keep it safe!
-              </p>
-              <input
-                type="number"
-                inputMode="numeric"
-                maxLength={6}
-                value={syncPinInput}
-                onChange={e => setSyncPinInput(e.target.value.replace(/\D/g,"").slice(0,6))}
-                style={{ border:"3px solid #4f46e5", padding:"10px 14px", fontSize:20, fontFamily:"monospace", letterSpacing:6, width:"100%", marginBottom:14, boxSizing:"border-box" }}
-                placeholder="6-digit PIN"
-              />
-              {syncStatus==="error" && <p style={{ color:"#ef4444", fontWeight:700, marginBottom:10 }}>Error connecting — check your internet and try again.</p>}
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                <button onClick={() => connectSyncPin(syncPinInput)} className="fun-btn"
-                  style={{ border:"3px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:"'Press Start 2P',monospace", fontSize:9, padding:"12px 18px", cursor:"pointer", boxShadow:"4px 4px 0 #312e81" }}
-                  disabled={syncPinInput.length < 6}>
-                  {syncStatus==="syncing" ? "Connecting…" : "Connect"}
-                </button>
-                {syncPin && (
-                  <button onClick={() => setShowSyncSetup(false)} className="fun-btn"
-                    style={{ border:"3px solid #6b7280", background:"#6b7280", color:"#fff", fontFamily:"'Press Start 2P',monospace", fontSize:9, padding:"12px 18px", cursor:"pointer", boxShadow:"4px 4px 0 #374151" }}>
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Placement test ── */}
-        {showPlacement && (
-          <PlacementTest
-            profileName={profile.name}
-            onComplete={completePlacement}
-            onSkip={skipPlacement}
-          />
         )}
 
         {/* ── Tabs ── */}
@@ -1165,27 +1357,18 @@ export default function App() {
                 <div style={{ ...S.flat, marginBottom:14 }}>
                   <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>Cloud Sync PIN</div>
                   <p style={S.sub}>Your progress syncs between devices using a 6-digit PIN you choose. Enter the same PIN on any device to load your progress.</p>
-                  {syncPin ? (
-                    <div style={{ marginTop:10 }}>
-                      <div style={{ fontWeight:700, marginBottom:8 }}>Current PIN: <span style={{ fontFamily:"monospace", fontSize:18, letterSpacing:4, background:"#f0f4ff", padding:"2px 8px", borderRadius:6 }}>{syncPin}</span></div>
-                      <div style={{ ...S.sub, marginBottom:10, color: syncStatus==="saved"?"#16a34a":syncStatus==="error"?"#ef4444":syncStatus==="syncing"?"#f59e0b":"#6b7280" }}>
-                        {syncStatus==="saved"?"✓ Saved to cloud":syncStatus==="error"?"✗ Sync error — check connection":syncStatus==="syncing"?"↑ Syncing…":"Cloud sync active"}
-                      </div>
-                      <button onClick={() => setShowSyncSetup(true)} className="fun-btn" style={S.btn("#6b7280","#374151")}>Change PIN</button>
+                  <div style={{ marginTop:10 }}>
+                    <div style={{ fontWeight:700, marginBottom:8 }}>Current PIN: <span style={{ fontFamily:"monospace", fontSize:18, letterSpacing:4, background:"#f0f4ff", padding:"2px 8px", borderRadius:6 }}>{syncPin || "None"}</span></div>
+                    <div style={{ ...S.sub, color: syncStatus==="saved"?"#16a34a":syncStatus==="error"?"#ef4444":syncStatus==="syncing"?"#f59e0b":"#6b7280" }}>
+                      {syncStatus==="saved"?"✓ Saved to cloud":syncStatus==="error"?"✗ Sync error":syncStatus==="syncing"?"↑ Syncing…":syncPin?"Cloud sync active":"No PIN — progress saved locally only"}
                     </div>
-                  ) : (
-                    <div style={{ marginTop:10 }}>
-                      <p style={{ ...S.sub, color:"#ef4444", marginBottom:8 }}>No sync PIN set — progress is only saved on this device.</p>
-                      <button onClick={() => setShowSyncSetup(true)} className="fun-btn" style={S.btn()}>Set up Sync PIN</button>
-                    </div>
-                  )}
+                  </div>
                 </div>
                 <div style={S.flat}>
                   <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>Reset profiles</div>
                   <p style={S.sub}>Erases all progress, badges, and history.</p>
                   <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginTop:10 }}>
-                    <button onClick={() => resetProfile("daughter")} className="fun-btn" style={S.btn("#ef4444","#7f1d1d")}>Reset Daughter</button>
-                    <button onClick={() => resetProfile("test")} className="fun-btn" style={S.btn("#f97316","#7c2d12")}>Reset Test</button>
+                    <button onClick={() => resetProfile(activeProfileId)} className="fun-btn" style={S.btn("#ef4444","#7f1d1d")}>Reset My Progress</button>
                   </div>
                 </div>
               </>
