@@ -552,7 +552,7 @@ export default function App() {
         <div style={{ ...S.card, background:"#4f46e5", borderTop:"4px solid #ffd700", marginBottom:14 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:16, flexWrap:"wrap" }}>
             <div>
-              <h1 style={{ ...S.h(17), color:"#ffd700" }}>Maths Adventure</h1>
+              <h1 style={{ ...S.h(17), color:"#ffd700" }}>Get Maths Mastery</h1>
               <p style={{ color:"#c7d2fe", fontSize:13, fontWeight:700, marginTop:5 }}>Accuracy first, then speed — that's how champions are made!</p>
             </div>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
