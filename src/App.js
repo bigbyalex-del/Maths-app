@@ -401,14 +401,15 @@ function PinEntryScreen({ onSubmit, onBack, loading, error }) {
 // Speed measured silently — no countdown shown to child.
 function PlacementTest({ profileName, startStage, onComplete, onParentOverride, parentPin }) {
   const PX = "'Press Start 2P', monospace";
-  const [stageIdx, setStageIdx] = useState(Math.min(startStage, PLACEMENT_STAGES.length - 1));
-  const [blockQ, setBlockQ] = useState(0);          // 0-2 within current block
-  const [blockResults, setBlockResults] = useState([]); // { correct, secs }
+  const clampedStart = Math.min(startStage, PLACEMENT_STAGES.length - 1);
+  const [stageIdx, setStageIdx] = useState(clampedStart);
+  const [blockQ, setBlockQ] = useState(0);
+  const [blockResults, setBlockResults] = useState([]);
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState(null);
   const [done, setDone] = useState(false);
-  const [placedStageIdx, setPlacedStageIdx] = useState(startStage);
-  const [totalQ, setTotalQ] = useState(0);
+  const [placedStageIdx, setPlacedStageIdx] = useState(clampedStart);
+  const [lastPassedStage, setLastPassedStage] = useState(null);  // highest stage passed
   const [showParentOverride, setShowParentOverride] = useState(false);
   const [parentEntry, setParentEntry] = useState("");
   const [parentErr, setParentErr] = useState("");
@@ -432,34 +433,59 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
     const isCorrect = normalizeAnswer(answer) === normalizeAnswer(correctAnswer);
     setFeedback(isCorrect ? "correct" : "wrong");
     const newResults = [...blockResults, { correct: isCorrect, secs }];
+
     setTimeout(() => {
       const nextQ = blockQ + 1;
-      const nextTotal = totalQ + 1;
       if (nextQ < 3) {
-        // More questions in this block
+        // Still in this block
         setBlockQ(nextQ);
         setBlockResults(newResults);
-        setTotalQ(nextTotal);
         setAnswer("");
         setFeedback(null);
-      } else {
-        // Block complete — evaluate
-        const correct = newResults.filter(r => r.correct).length;
-        const avgSecs = newResults.reduce((s, r) => s + r.secs, 0) / newResults.length;
-        const passed = correct >= 2 && avgSecs <= stage.speedSecs;
-        const slowButCorrect = correct >= 2 && avgSecs > stage.speedSecs;
-        if (passed && stageIdx < PLACEMENT_STAGES.length - 1) {
-          // Advance to next stage
+        return;
+      }
+
+      // Block complete — evaluate pass/fail
+      const correctCount = newResults.filter(r => r.correct).length;
+      const avgSecs = newResults.reduce((s, r) => s + r.secs, 0) / newResults.length;
+      const passed = correctCount >= 2 && avgSecs <= stage.speedSecs;
+      const slowPass = correctCount >= 2 && avgSecs > stage.speedSecs; // right but too slow
+
+      if (passed) {
+        // Passed this stage
+        const newLastPassed = stageIdx;
+        setLastPassedStage(newLastPassed);
+        if (stageIdx < PLACEMENT_STAGES.length - 1) {
+          // Try next stage up
           setStageIdx(s => s + 1);
           setBlockQ(0);
           setBlockResults([]);
-          setTotalQ(nextTotal);
           setAnswer("");
           setFeedback(null);
         } else {
-          // Place here — if slow but correct, drop one stage
-          const finalIdx = slowButCorrect && stageIdx > 0 ? stageIdx - 1 : stageIdx;
-          setPlacedStageIdx(finalIdx);
+          // Passed the highest stage — place at top
+          setPlacedStageIdx(stageIdx);
+          setDone(true);
+        }
+      } else if (slowPass) {
+        // Correct but slow — place one below current
+        setPlacedStageIdx(stageIdx > 0 ? stageIdx - 1 : 0);
+        setDone(true);
+      } else {
+        // Failed — if we've already passed a lower stage, place there
+        if (lastPassedStage !== null) {
+          setPlacedStageIdx(lastPassedStage);
+          setDone(true);
+        } else if (stageIdx > 0) {
+          // Haven't passed anything yet — try one stage lower
+          setStageIdx(s => s - 1);
+          setBlockQ(0);
+          setBlockResults([]);
+          setAnswer("");
+          setFeedback(null);
+        } else {
+          // Failed at stage 0 — place at the beginning
+          setPlacedStageIdx(0);
           setDone(true);
         }
       }
