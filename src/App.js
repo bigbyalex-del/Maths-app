@@ -210,7 +210,150 @@ function getEncouragement(accuracy, time, masteryTime, isSpeedPhase, speedPasses
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────────
-const EMPTY_PROFILE = (id, name) => ({ id, name, totalQuestions: 0, streak: 0, bestStreak: 0, lastCompletedDate: "", history: [], levelProgress: {}, badges: [] });
+const EMPTY_PROFILE = (id, name) => ({ id, name, totalQuestions: 0, streak: 0, bestStreak: 0, lastCompletedDate: "", history: [], levelProgress: {}, badges: [], placementDone: false });
+
+// ── Placement test ────────────────────────────────────────────────────────────
+// 10 adaptive questions. Starts at stage 2 (mid difficulty).
+// Correct → move up; Wrong → move down. Final stage determines starting level.
+const PLACEMENT_STAGES = [
+  { levelId: "add-1",       label: "Basic addition",          questions: [{a:3,b:1,op:"+"},{a:7,b:2,op:"+"},{a:5,b:1,op:"+"}] },
+  { levelId: "make-10",     label: "Adding to 10",            questions: [{a:6,b:4,op:"+"},{a:7,b:3,op:"+"},{a:8,b:2,op:"+"}] },
+  { levelId: "add-mix-20",  label: "Adding to 20",            questions: [{a:13,b:5,op:"+"},{a:9,b:7,op:"+"},{a:8,b:6,op:"+"}] },
+  { levelId: "sub-1",       label: "Basic subtraction",       questions: [{a:8,b:3,op:"-"},{a:10,b:4,op:"-"},{a:12,b:5,op:"-"}] },
+  { levelId: "sub-mix-20",  label: "Subtraction to 20",       questions: [{a:15,b:7,op:"-"},{a:18,b:9,op:"-"},{a:14,b:6,op:"-"}] },
+  { levelId: "add-no-carry",label: "Adding bigger numbers",   questions: [{a:23,b:45,op:"+"},{a:34,b:52,op:"+"},{a:41,b:36,op:"+"}] },
+  { levelId: "add-carry",   label: "Adding with carrying",    questions: [{a:27,b:18,op:"+"},{a:36,b:27,op:"+"},{a:48,b:16,op:"+"}] },
+  { levelId: "times-2",     label: "Multiplication basics",   questions: [{a:3,b:5,op:"×"},{a:4,b:2,op:"×"},{a:6,b:10,op:"×"}] },
+  { levelId: "times-3-4",   label: "Times tables",            questions: [{a:6,b:7,op:"×"},{a:8,b:9,op:"×"},{a:7,b:8,op:"×"}] },
+];
+
+function buildPlacementProgress(placedLevelId) {
+  const placedIdx = flatLevels.findIndex(l => l.id === placedLevelId);
+  const progress = {};
+  for (let i = 0; i < placedIdx; i++) {
+    progress[flatLevels[i].id] = { mastered: true, accuracyUnlocked: true, speedPasses: 3, attempts: 0, bestAccuracy: 100 };
+  }
+  return progress;
+}
+
+function PlacementTest({ profileName, onComplete, onSkip }) {
+  const TOTAL_Q = 10;
+  const START_STAGE = 2;
+  const [stageIdx, setStageIdx] = useState(START_STAGE);
+  const [qNum, setQNum] = useState(0);
+  const [qInStage, setQInStage] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
+  const [done, setDone] = useState(false);
+  const [finalStage, setFinalStage] = useState(START_STAGE);
+  const inputRef = useRef(null);
+
+  const stage = PLACEMENT_STAGES[stageIdx];
+  const q = stage.questions[qInStage % stage.questions.length];
+  const correctAnswer = computeAnswer(q.a, q.b, q.op);
+
+  useEffect(() => { if (!done && !feedback) inputRef.current?.focus(); }, [qNum, done, feedback]);
+
+  function submit() {
+    if (feedback) return;
+    const isCorrect = normalizeAnswer(answer) === normalizeAnswer(correctAnswer);
+    setFeedback(isCorrect ? "correct" : "wrong");
+    const nextStage = isCorrect ? Math.min(stageIdx + 1, PLACEMENT_STAGES.length - 1) : Math.max(stageIdx - 1, 0);
+    setTimeout(() => {
+      const nextQ = qNum + 1;
+      if (nextQ >= TOTAL_Q) {
+        setFinalStage(nextStage);
+        setDone(true);
+      } else {
+        setStageIdx(nextStage);
+        setQInStage(prev => prev + 1);
+        setQNum(nextQ);
+        setAnswer("");
+        setFeedback(null);
+      }
+    }, 700);
+  }
+
+  const PX = "'Press Start 2P', monospace";
+  const progress = Math.round(((qNum) / TOTAL_Q) * 100);
+
+  if (done) {
+    const placedLevel = PLACEMENT_STAGES[finalStage];
+    const placedFlat = flatLevels.find(l => l.id === placedLevel.levelId);
+    const placedIdx = flatLevels.findIndex(l => l.id === placedLevel.levelId);
+    return (
+      <div style={{ position:"fixed", inset:0, background:"rgba(15,15,35,0.97)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2000, padding:16 }}>
+        <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5", textAlign:"center" }}>
+          <div style={{ fontSize:48, marginBottom:12 }}>🎯</div>
+          <div style={{ fontFamily:PX, fontSize:13, color:"#4f46e5", marginBottom:16 }}>Placement Complete!</div>
+          <p style={{ fontSize:14, fontWeight:700, color:"#374151", lineHeight:1.7, marginBottom:8 }}>
+            Great work, {profileName}!
+          </p>
+          <p style={{ fontSize:13, color:"#6b7280", lineHeight:1.7, marginBottom:20 }}>
+            Based on your answers, we're starting you at:
+          </p>
+          <div style={{ background:"#f0f4ff", border:"3px solid #4f46e5", padding:"16px 20px", marginBottom:20 }}>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:6 }}>{placedFlat?.sectionName}</div>
+            <div style={{ fontWeight:900, fontSize:18, color:"#111" }}>{placedFlat?.title}</div>
+            {placedIdx > 0 && <p style={{ fontSize:12, color:"#6b7280", marginTop:8 }}>The {placedIdx} easier level{placedIdx!==1?"s":""} before this have been unlocked for practice.</p>}
+          </div>
+          <button onClick={() => onComplete(buildPlacementProgress(placedLevel.levelId))}
+            style={{ border:"3px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:9, padding:"14px 24px", cursor:"pointer", boxShadow:"4px 4px 0 #312e81", width:"100%" }}>
+            Let's Go!
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(15,15,35,0.97)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2000, padding:16 }}>
+      <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5" }}>
+        <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:6 }}>Placement Test</div>
+        <p style={{ fontSize:12, color:"#6b7280", marginBottom:16 }}>Help us find your perfect starting level, {profileName}!</p>
+
+        {/* Progress bar */}
+        <div style={{ background:"#e5e7eb", height:10, borderRadius:5, marginBottom:20 }}>
+          <div style={{ background:"#4f46e5", height:10, borderRadius:5, width:`${progress}%`, transition:"width 0.3s" }} />
+        </div>
+        <div style={{ fontSize:11, color:"#9ca3af", marginBottom:20 }}>Question {qNum + 1} of {TOTAL_Q} — {stage.label}</div>
+
+        {/* Question */}
+        <div style={{ textAlign:"center", marginBottom:24 }}>
+          <div style={{ fontFamily:PX, fontSize:28, color:"#111", marginBottom:20, letterSpacing:2 }}>
+            {q.a} {q.op} {q.b} = ?
+          </div>
+          <input
+            ref={inputRef}
+            type="number"
+            inputMode="numeric"
+            value={answer}
+            onChange={e => setAnswer(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && answer !== "" && submit()}
+            style={{ border:`3px solid ${feedback==="correct"?"#16a34a":feedback==="wrong"?"#ef4444":"#4f46e5"}`, padding:"12px 16px", fontSize:24, fontFamily:"monospace", width:120, textAlign:"center", background: feedback==="correct"?"#dcfce7":feedback==="wrong"?"#fee2e2":"#fff", transition:"all 0.2s" }}
+            disabled={!!feedback}
+          />
+          {feedback && (
+            <div style={{ marginTop:12, fontWeight:900, fontSize:16, color: feedback==="correct"?"#16a34a":"#ef4444" }}>
+              {feedback==="correct" ? "✓ Correct!" : `✗ Answer: ${correctAnswer}`}
+            </div>
+          )}
+        </div>
+
+        <div style={{ display:"flex", gap:10 }}>
+          <button onClick={submit} disabled={answer===""||!!feedback}
+            style={{ flex:1, border:"3px solid #4f46e5", background: answer===""||feedback?"#e5e7eb":"#4f46e5", color: answer===""||feedback?"#9ca3af":"#fff", fontFamily:PX, fontSize:9, padding:"12px", cursor: answer===""||feedback?"not-allowed":"pointer", boxShadow: answer===""||feedback?"none":"4px 4px 0 #312e81" }}>
+            Submit
+          </button>
+          <button onClick={onSkip}
+            style={{ border:"3px solid #d1d5db", background:"#fff", color:"#9ca3af", fontFamily:PX, fontSize:8, padding:"12px 14px", cursor:"pointer" }}>
+            Skip
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 const DEFAULT_PROFILES = { daughter: EMPTY_PROFILE("daughter", "My Daughter"), test: EMPTY_PROFILE("test", "Test Account") };
 function safeRead() { try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
 function safeWrite(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
@@ -301,6 +444,9 @@ export default function App() {
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState("");
 
+  // Placement test
+  const [showPlacement, setShowPlacement] = useState(false);
+
   // Cloud sync
   const [syncPin, setSyncPin] = useState(loaded.syncPin || "");
   const [syncPinInput, setSyncPinInput] = useState("");
@@ -327,6 +473,16 @@ export default function App() {
   const problems = useMemo(() => buildProblems(currentLevelId, masteredIds, isSpeedPhase), [currentLevelId, masteredIds, isSpeedPhase]);
 
   useEffect(() => { safeWrite({ profiles, activeProfileId, appSettings, syncPin }); }, [profiles, activeProfileId, appSettings, syncPin]);
+
+  // Show placement test for new profiles that haven't done it yet
+  useEffect(() => {
+    const p = profiles[activeProfileId];
+    if (p && !p.placementDone && Object.keys(p.levelProgress || {}).length === 0) {
+      setShowPlacement(true);
+    } else {
+      setShowPlacement(false);
+    }
+  }, [activeProfileId, profiles]);
 
   // Cloud sync — push to Firestore whenever profiles change (debounced 2s)
   const pushToCloud = useCallback((pin, data) => {
@@ -377,6 +533,17 @@ export default function App() {
 
   function updateProfile(patch) {
     setProfiles(prev => ({ ...prev, [activeProfileId]: { ...prev[activeProfileId], ...patch } }));
+  }
+
+  function completePlacement(levelProgress) {
+    updateProfile({ levelProgress, placementDone: true });
+    setShowPlacement(false);
+    startSession();
+  }
+
+  function skipPlacement() {
+    updateProfile({ placementDone: true });
+    setShowPlacement(false);
   }
 
   async function connectSyncPin(pin) {
@@ -622,6 +789,15 @@ export default function App() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ── Placement test ── */}
+        {showPlacement && (
+          <PlacementTest
+            profileName={profile.name}
+            onComplete={completePlacement}
+            onSkip={skipPlacement}
+          />
         )}
 
         {/* ── Tabs ── */}
