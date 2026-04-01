@@ -304,23 +304,23 @@ function SignupScreen({ onComplete, onBack }) {
   const btnStyle = { border:"4px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:10, padding:"14px", cursor:"pointer", boxShadow:"5px 5px 0 #312e81", width:"100%", lineHeight:1.8 };
 
   return (
-    <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
-      <div style={{ background:"#fff", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:32, maxWidth:420, width:"100%" }}>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:32, maxWidth:420, width:"100%", backdropFilter:"blur(2px)" }}>
         <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-          {[1,2,3].map(s => <div key={s} style={{ flex:1, height:6, borderRadius:3, background: s<=step?"#4f46e5":"#e5e7eb", transition:"background 0.3s" }} />)}
+          {[1,2,3].map(s => <div key={s} style={{ flex:1, height:6, borderRadius:3, background: s<=step?"#ffd700":"rgba(255,255,255,0.2)", transition:"background 0.3s" }} />)}
         </div>
 
         {step === 1 && (
           <>
-            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:20 }}>Step 1: Who are you?</div>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:20 }}>Step 1: Who are you?</div>
             <div style={{ marginBottom:14 }}>
-              <label style={{ fontSize:13, fontWeight:800, color:"#374151", display:"block", marginBottom:6 }}>Your name</label>
+              <label style={{ fontSize:13, fontWeight:800, color:"#e2e8f0", display:"block", marginBottom:6 }}>Your name</label>
               <input autoFocus value={name} onChange={e => { setName(e.target.value); setError(""); }}
                 onKeyDown={e => e.key==="Enter" && nextStep()}
                 style={inputStyle} placeholder="e.g. Emma" maxLength={30} />
             </div>
             <div style={{ marginBottom:20 }}>
-              <label style={{ fontSize:13, fontWeight:800, color:"#374151", display:"block", marginBottom:6 }}>Your age</label>
+              <label style={{ fontSize:13, fontWeight:800, color:"#e2e8f0", display:"block", marginBottom:6 }}>Your age</label>
               <input type="number" value={age} onChange={e => { setAge(e.target.value); setError(""); }}
                 onKeyDown={e => e.key==="Enter" && nextStep()}
                 style={{ ...inputStyle, width:120 }} placeholder="e.g. 8" min={4} max={16} />
@@ -330,8 +330,8 @@ function SignupScreen({ onComplete, onBack }) {
 
         {step === 2 && (
           <>
-            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:12 }}>Step 2: Choose a PIN</div>
-            <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:12 }}>Step 2: Choose a PIN</div>
+            <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
               Your 6-digit PIN saves your progress across all your devices. <strong>Write it down somewhere safe!</strong>
             </p>
             <input autoFocus type="number" inputMode="numeric" value={pin}
@@ -343,9 +343,9 @@ function SignupScreen({ onComplete, onBack }) {
 
         {step === 3 && (
           <>
-            <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:12 }}>Step 3: Confirm PIN</div>
-            <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
-              Your PIN is <strong style={{ fontFamily:"monospace", fontSize:20, letterSpacing:4 }}>{pin}</strong><br/>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:12 }}>Step 3: Confirm PIN</div>
+            <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
+              Your PIN is <strong style={{ fontFamily:"monospace", fontSize:20, letterSpacing:4, color:"#ffd700" }}>{pin}</strong><br/>
               Type it again to confirm.
             </p>
             <input autoFocus type="number" inputMode="numeric" value={pinConfirm}
@@ -359,7 +359,7 @@ function SignupScreen({ onComplete, onBack }) {
 
         <div style={{ display:"flex", gap:10, marginTop:20 }}>
           <button onClick={() => step===1 ? onBack() : setStep(s=>s-1)}
-            style={{ border:"3px solid #d1d5db", background:"#fff", color:"#6b7280", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>
+            style={{ border:"3px solid rgba(255,255,255,0.3)", background:"rgba(255,255,255,0.1)", color:"#e2e8f0", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>
             Back
           </button>
           <button onClick={nextStep} style={{ ...btnStyle, flex:1, padding:"12px" }}>
@@ -376,21 +376,21 @@ function PinEntryScreen({ onSubmit, onBack, loading, error }) {
   const PX = "'Press Start 2P', monospace";
   const [pin, setPin] = useState("");
   return (
-    <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
-      <div style={{ background:"#fff", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:32, maxWidth:400, width:"100%", textAlign:"center" }}>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:32, maxWidth:400, width:"100%", textAlign:"center", backdropFilter:"blur(2px)" }}>
         <div style={{ fontSize:48, marginBottom:12 }}>🔑</div>
-        <div style={{ fontFamily:PX, fontSize:11, color:"#4f46e5", marginBottom:16 }}>Enter your PIN</div>
-        <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, marginBottom:20 }}>Type your 6-digit PIN to load your progress on this device.</p>
+        <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:16 }}>Enter your PIN</div>
+        <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, marginBottom:20 }}>Type your 6-digit PIN to load your progress on this device.</p>
         <input autoFocus type="number" inputMode="numeric" value={pin}
           onChange={e => setPin(e.target.value.replace(/\D/g,"").slice(0,6))}
           onKeyDown={e => e.key==="Enter" && pin.length===6 && onSubmit(pin)}
-          style={{ border:"3px solid #4f46e5", padding:"12px", fontSize:28, fontFamily:"monospace", letterSpacing:8, textAlign:"center", width:"100%", boxSizing:"border-box", marginBottom:16 }}
+          style={{ border:"3px solid #ffd700", padding:"12px", fontSize:28, fontFamily:"monospace", letterSpacing:8, textAlign:"center", width:"100%", boxSizing:"border-box", marginBottom:16, background:"rgba(255,255,255,0.1)", color:"#fff" }}
           placeholder="——————" maxLength={6} />
         {error && <p style={{ color:"#ef4444", fontWeight:800, fontSize:13, marginBottom:12 }}>{error}</p>}
         <div style={{ display:"flex", gap:10 }}>
-          <button onClick={onBack} style={{ border:"3px solid #d1d5db", background:"#fff", color:"#6b7280", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>Back</button>
+          <button onClick={onBack} style={{ border:"3px solid rgba(255,255,255,0.3)", background:"rgba(255,255,255,0.1)", color:"#e2e8f0", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>Back</button>
           <button onClick={() => onSubmit(pin)} disabled={pin.length!==6||loading}
-            style={{ flex:1, border:"4px solid #4f46e5", background: pin.length===6&&!loading?"#4f46e5":"#e5e7eb", color: pin.length===6&&!loading?"#fff":"#9ca3af", fontFamily:PX, fontSize:10, padding:"12px", cursor: pin.length===6&&!loading?"pointer":"not-allowed", boxShadow: pin.length===6&&!loading?"5px 5px 0 #312e81":"none" }}>
+            style={{ flex:1, border:"4px solid #ffd700", background: pin.length===6&&!loading?"#ffd700":"rgba(255,255,255,0.1)", color: pin.length===6&&!loading?"#111":"#9ca3af", fontFamily:PX, fontSize:10, padding:"12px", cursor: pin.length===6&&!loading?"pointer":"not-allowed", boxShadow: pin.length===6&&!loading?"5px 5px 0 #b8860b":"none" }}>
             {loading ? "Loading…" : "Load Progress"}
           </button>
         </div>
@@ -503,14 +503,14 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
     const placedFlat = flatLevels.find(l => l.id === placedLevel.levelId);
     const placedFlatIdx = flatLevels.findIndex(l => l.id === placedLevel.levelId);
     return (
-      <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
-        <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5", textAlign:"center" }}>
+      <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+        <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #000", textAlign:"center", backdropFilter:"blur(2px)" }}>
           <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:120, height:"auto", marginBottom:12 }} />
-          <div style={{ fontFamily:PX, fontSize:12, color:"#4f46e5", marginBottom:8 }}>Placement Complete!</div>
-          <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, fontStyle:"italic", marginBottom:8 }}>
+          <div style={{ fontFamily:PX, fontSize:12, color:"#ffd700", marginBottom:8 }}>Placement Complete!</div>
+          <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, fontStyle:"italic", marginBottom:8 }}>
             "I have assessed your abilities, {profileName}."
           </p>
-          <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
+          <p style={{ fontSize:13, color:"#e2e8f0", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
             Based on your speed and accuracy, you begin here:
           </p>
           <div style={{ background:"#f0f4ff", border:"3px solid #4f46e5", padding:"16px 20px", marginBottom:8 }}>
@@ -532,10 +532,10 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
-      <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5" }}>
-        <div style={{ fontFamily:PX, fontSize:10, color:"#4f46e5", marginBottom:4 }}>Placement Test</div>
-        <p style={{ fontSize:12, color:"#6b7280", fontWeight:700, marginBottom:16 }}>Finding your perfect starting level, {profileName}!</p>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #000", backdropFilter:"blur(2px)" }}>
+        <div style={{ fontFamily:PX, fontSize:10, color:"#ffd700", marginBottom:4 }}>Placement Test</div>
+        <p style={{ fontSize:12, color:"#c7d2fe", fontWeight:700, marginBottom:16 }}>Finding your perfect starting level, {profileName}!</p>
 
         {/* Stage progress */}
         <div style={{ display:"flex", gap:4, marginBottom:8 }}>
@@ -546,32 +546,32 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
         {/* Block progress dots */}
         <div style={{ display:"flex", gap:8, marginBottom:20, justifyContent:"center" }}>
           {[0,1,2].map(i => (
-            <div key={i} style={{ width:14, height:14, borderRadius:"50%", border:"2px solid #4f46e5",
-              background: i < blockQ ? (blockResults[i]?.correct ? "#22c55e" : "#ef4444") : i===blockQ ? "#4f46e5" : "#fff", transition:"background 0.3s" }} />
+            <div key={i} style={{ width:14, height:14, borderRadius:"50%", border:"2px solid #ffd700",
+              background: i < blockQ ? (blockResults[i]?.correct ? "#22c55e" : "#ef4444") : i===blockQ ? "#ffd700" : "rgba(255,255,255,0.1)", transition:"background 0.3s" }} />
           ))}
         </div>
-        <div style={{ fontSize:12, color:"#9ca3af", fontWeight:700, marginBottom:20, textAlign:"center" }}>
+        <div style={{ fontSize:12, color:"#c7d2fe", fontWeight:700, marginBottom:20, textAlign:"center" }}>
           {stage.label} — Question {blockQ + 1} of 3
         </div>
 
         <div style={{ textAlign:"center", marginBottom:24 }}>
-          <div style={{ fontFamily:PX, fontSize:32, color:"#111", marginBottom:20, letterSpacing:2, lineHeight:1.6 }}>
+          <div style={{ fontFamily:PX, fontSize:32, color:"#ffd700", marginBottom:20, letterSpacing:2, lineHeight:1.6 }}>
             {q.a} {q.op} {q.b} = ?
           </div>
           <input ref={inputRef} type="number" inputMode="numeric" value={answer}
             onChange={e => setAnswer(e.target.value)}
             onKeyDown={e => e.key==="Enter" && answer!=="" && !feedback && submit()}
-            style={{ border:`3px solid ${feedback==="correct"?"#16a34a":feedback==="wrong"?"#ef4444":"#4f46e5"}`, padding:"12px 16px", fontSize:28, fontFamily:"monospace", width:140, textAlign:"center", background:feedback==="correct"?"#dcfce7":feedback==="wrong"?"#fee2e2":"#fff", transition:"all 0.2s", outline:"none" }}
+            style={{ border:`3px solid ${feedback==="correct"?"#22c55e":feedback==="wrong"?"#ef4444":"#ffd700"}`, padding:"12px 16px", fontSize:28, fontFamily:"monospace", width:140, textAlign:"center", background:feedback==="correct"?"rgba(34,197,94,0.2)":feedback==="wrong"?"rgba(239,68,68,0.2)":"rgba(255,255,255,0.1)", color:"#fff", transition:"all 0.2s", outline:"none" }}
             disabled={!!feedback} />
           {feedback && (
-            <div style={{ marginTop:12, fontWeight:900, fontSize:15, color:feedback==="correct"?"#16a34a":"#ef4444" }}>
+            <div style={{ marginTop:12, fontWeight:900, fontSize:15, color:feedback==="correct"?"#22c55e":"#ef4444" }}>
               {feedback==="correct" ? "✓ Correct!" : `✗ Answer: ${correctAnswer}`}
             </div>
           )}
         </div>
 
         <button onClick={submit} disabled={answer===""||!!feedback}
-          style={{ width:"100%", border:"4px solid #4f46e5", background:answer===""||feedback?"#e5e7eb":"#4f46e5", color:answer===""||feedback?"#9ca3af":"#fff", fontFamily:PX, fontSize:10, padding:"14px", cursor:answer===""||feedback?"not-allowed":"pointer", boxShadow:answer===""||feedback?"none":"5px 5px 0 #312e81", lineHeight:1.8 }}>
+          style={{ width:"100%", border:"4px solid #ffd700", background:answer===""||feedback?"rgba(255,255,255,0.1)":"#ffd700", color:answer===""||feedback?"#9ca3af":"#111", fontFamily:PX, fontSize:10, padding:"14px", cursor:answer===""||feedback?"not-allowed":"pointer", boxShadow:answer===""||feedback?"none":"5px 5px 0 #b8860b", lineHeight:1.8 }}>
           Submit
         </button>
 
