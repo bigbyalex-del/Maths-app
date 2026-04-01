@@ -451,6 +451,9 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
       const passed = correctCount >= 2 && avgSecs <= stage.speedSecs;
       const slowPass = correctCount >= 2 && avgSecs > stage.speedSecs; // right but too slow
 
+      // Conservative bias: always place one stage below where test suggests
+      const conservativePlace = (idx) => Math.max(0, idx - 1);
+
       if (passed) {
         // Passed this stage
         const newLastPassed = stageIdx;
@@ -463,18 +466,18 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
           setAnswer("");
           setFeedback(null);
         } else {
-          // Passed the highest stage — place at top
-          setPlacedStageIdx(stageIdx);
+          // Passed the highest stage — place one below top (conservative)
+          setPlacedStageIdx(conservativePlace(stageIdx));
           setDone(true);
         }
       } else if (slowPass) {
-        // Correct but slow — place one below current
-        setPlacedStageIdx(stageIdx > 0 ? stageIdx - 1 : 0);
+        // Correct but slow — place two below current (conservative)
+        setPlacedStageIdx(Math.max(0, stageIdx - 2));
         setDone(true);
       } else {
-        // Failed — if we've already passed a lower stage, place there
+        // Failed — if we've already passed a lower stage, place conservatively below that
         if (lastPassedStage !== null) {
-          setPlacedStageIdx(lastPassedStage);
+          setPlacedStageIdx(conservativePlace(lastPassedStage));
           setDone(true);
         } else if (stageIdx > 0) {
           // Haven't passed anything yet — try one stage lower
