@@ -255,7 +255,7 @@ function WelcomeScreen({ onNew, onReturn }) {
   return (
     <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"#fff", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:36, maxWidth:440, width:"100%", textAlign:"center" }}>
-        <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:80, height:"auto", marginBottom:8 }} />
+        <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:140, height:"auto", marginBottom:12 }} />
         <h1 style={{ fontFamily:PX, fontSize:14, color:"#4f46e5", lineHeight:1.8, marginBottom:8 }}>Get Maths Mastery</h1>
         <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:8, fontStyle:"italic" }}>
           "I am the Maths Master. Prove your skill."
@@ -505,7 +505,7 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
     return (
       <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
         <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5", textAlign:"center" }}>
-          <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:72, height:"auto", marginBottom:8 }} />
+          <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:120, height:"auto", marginBottom:12 }} />
           <div style={{ fontFamily:PX, fontSize:12, color:"#4f46e5", marginBottom:8 }}>Placement Complete!</div>
           <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, fontStyle:"italic", marginBottom:8 }}>
             "I have assessed your abilities, {profileName}."
@@ -658,7 +658,7 @@ function CelebrationOverlay({ show, onDismiss, encouragement, newBadges }) {
       {pieces.map((p,i) => <div key={i} style={{ position:"absolute",top:"-60px",left:p.left,width:p.size,height:p.size,background:p.color,borderRadius:i%2===0?"50%":2,animation:`confetti-fall 2.6s ease-in ${p.delay} both` }} />)}
       <div style={{ background:"#fff",border:"4px solid #111",boxShadow:"8px 8px 0 #111",padding:"36px 44px",textAlign:"center",maxWidth:420,animation:"celebrate-pulse 0.8s ease-in-out infinite" }}>
         {encouragement?.type === "mastery" && (
-          <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:64, height:"auto", marginBottom:8 }} />
+          <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:100, height:"auto", marginBottom:8 }} />
         )}
         <div style={{ fontSize:52, marginBottom:8 }}>{encouragement?.emoji || "🌟"}</div>
         <div style={{ fontSize:28,fontWeight:900,color:"#111",fontFamily:"'Nunito',sans-serif",lineHeight:1.2 }}>{encouragement?.headline}</div>
@@ -1248,7 +1248,7 @@ export default function App() {
         {activeTab === "journey" && (
           <div style={S.card}>
             <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:6 }}>
-              <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:48, height:"auto", flexShrink:0 }} />
+              <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:80, height:"auto", flexShrink:0 }} />
               <div>
                 <div style={S.h(12)}>Journey Map</div>
                 <p style={{ ...S.sub, marginTop:4, fontStyle:"italic" }}>"{overallPct < 25 ? "Your journey begins. Stay focused." : overallPct < 50 ? "Good progress. Keep pushing forward." : overallPct < 75 ? "You are becoming a true mathematician." : overallPct < 100 ? "Almost there. Mastery is within reach." : "You have mastered all levels. Impressive."}"</p>
