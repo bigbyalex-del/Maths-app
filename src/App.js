@@ -547,7 +547,7 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
         <div style={{ display:"flex", gap:8, marginBottom:20, justifyContent:"center" }}>
           {[0,1,2].map(i => (
             <div key={i} style={{ width:14, height:14, borderRadius:"50%", border:"2px solid #ffd700",
-              background: i < blockQ ? (blockResults[i]?.correct ? "#22c55e" : "#ef4444") : i===blockQ ? "#ffd700" : "rgba(255,255,255,0.1)", transition:"background 0.3s" }} />
+              background: i < blockQ ? "#22c55e" : i===blockQ ? "#ffd700" : "rgba(255,255,255,0.1)", transition:"background 0.3s" }} />
           ))}
         </div>
         <div style={{ fontSize:12, color:"#c7d2fe", fontWeight:700, marginBottom:20, textAlign:"center" }}>
@@ -561,11 +561,11 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
           <input ref={inputRef} type="number" inputMode="numeric" value={answer}
             onChange={e => setAnswer(e.target.value)}
             onKeyDown={e => e.key==="Enter" && answer!=="" && !feedback && submit()}
-            style={{ border:`3px solid ${feedback==="correct"?"#22c55e":feedback==="wrong"?"#ef4444":"#ffd700"}`, padding:"12px 16px", fontSize:28, fontFamily:"monospace", width:140, textAlign:"center", background:feedback==="correct"?"rgba(34,197,94,0.2)":feedback==="wrong"?"rgba(239,68,68,0.2)":"rgba(255,255,255,0.1)", color:"#fff", transition:"all 0.2s", outline:"none" }}
+            style={{ border:`3px solid ${feedback==="correct"?"#22c55e":"#ffd700"}`, padding:"12px 16px", fontSize:28, fontFamily:"monospace", width:140, textAlign:"center", background:feedback==="correct"?"rgba(34,197,94,0.2)":"rgba(255,255,255,0.1)", color:"#fff", transition:"all 0.2s", outline:"none" }}
             disabled={!!feedback} />
-          {feedback && (
-            <div style={{ marginTop:12, fontWeight:900, fontSize:15, color:feedback==="correct"?"#22c55e":"#ef4444" }}>
-              {feedback==="correct" ? "✓ Correct!" : `✗ Answer: ${correctAnswer}`}
+          {feedback==="correct" && (
+            <div style={{ marginTop:12, fontWeight:900, fontSize:15, color:"#22c55e" }}>
+              ✓ Correct!
             </div>
           )}
         </div>
