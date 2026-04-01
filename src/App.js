@@ -956,28 +956,30 @@ export default function App() {
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const PX = "'Press Start 2P', monospace";
-  const BD = "4px solid #111";
-  const SD = "5px 5px 0 #111";
+  // Palette: deep purple + gold to match castle onboarding theme
+  const C = { purple:"#2d1b69", purpleMid:"#4c2f9e", purpleLight:"#f3f0ff", gold:"#c9a227", goldLight:"#fff8e1", border:"#2d1b69", shadow:"#1a0f40" };
+  const BD = `4px solid ${C.border}`;
+  const SD = `5px 5px 0 ${C.shadow}`;
 
   const S = {
-    page: { minHeight:"100vh", background:"#f0f4ff", fontFamily:"'Nunito',sans-serif", color:"#111", padding:16, boxSizing:"border-box" },
+    page: { minHeight:"100vh", background:C.purpleLight, fontFamily:"'Nunito',sans-serif", color:C.purple, padding:16, boxSizing:"border-box" },
     wrap: { maxWidth:1100, margin:"0 auto" },
     card: { background:"#fff", border:BD, boxShadow:SD, padding:20, marginBottom:16 },
-    flat: { background:"#f9fafb", border:"2px solid #e5e7eb", padding:14, marginBottom:10 },
-    h: (sz=16) => ({ fontFamily:PX, fontSize:sz, lineHeight:1.7, margin:0, color:"#111" }),
-    sub: { fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.5, margin:0 },
-    tab: (a) => ({ border:BD, padding:"10px 16px", cursor:"pointer", fontFamily:PX, fontSize:9, lineHeight:1.8, background:a?"#4f46e5":"#fff", color:a?"#fff":"#111", boxShadow:a?"5px 5px 0 #2e1f8f":SD }),
-    btn: (bg="#4f46e5", sh="#2e1f8f") => ({ border:BD, padding:"12px 20px", background:bg, color:bg==="#ffd700"||bg==="#22c55e"?"#111":"#fff", fontFamily:PX, fontSize:10, lineHeight:1.8, boxShadow:`5px 5px 0 ${sh}`, cursor:"pointer" }),
-    qCard: (cor, wr, lv) => ({ background:cor||lv?"#f0fdf4":wr?"#fef2f2":"#fff", border:`4px solid ${cor||lv?"#16a34a":wr?"#dc2626":"#e5e7eb"}`, boxShadow:`3px 3px 0 ${cor||lv?"#16a34a":wr?"#dc2626":"#d1d5db"}`, padding:"10px 8px", minHeight:86, position:"relative" }),
-    inp: (lv,cor,wr) => ({ width:62, height:44, border:`4px solid ${lv||cor?"#16a34a":wr?"#dc2626":"#4f46e5"}`, textAlign:"center", fontSize:19, fontWeight:900, marginLeft:5, background:lv||cor?"#dcfce7":wr?"#fee2e2":"#eef2ff", outline:"none", fontFamily:"'Nunito',sans-serif", color:"#111", boxShadow:`2px 2px 0 ${lv||cor?"#16a34a":wr?"#dc2626":"#4f46e5"}` }),
-    settingInp: { height:44, border:BD, padding:"0 12px", fontSize:15, fontWeight:700, background:"#fff", outline:"none", boxSizing:"border-box", fontFamily:"'Nunito',sans-serif", boxShadow:"3px 3px 0 #111" },
+    flat: { background:C.purpleLight, border:`2px solid #d8d0f0`, padding:14, marginBottom:10 },
+    h: (sz=16) => ({ fontFamily:PX, fontSize:sz, lineHeight:1.7, margin:0, color:C.purple }),
+    sub: { fontSize:13, color:"#6b5e9e", fontWeight:700, lineHeight:1.5, margin:0 },
+    tab: (a) => ({ border:BD, padding:"10px 16px", cursor:"pointer", fontFamily:PX, fontSize:9, lineHeight:1.8, background:a?C.purple:"#fff", color:a?"#ffd700":C.purple, boxShadow:a?`5px 5px 0 ${C.shadow}`:SD }),
+    btn: (bg=C.purple, sh=C.shadow) => ({ border:BD, padding:"12px 20px", background:bg, color:bg===C.gold||bg==="#ffd700"||bg==="#22c55e"?"#111":"#fff", fontFamily:PX, fontSize:10, lineHeight:1.8, boxShadow:`5px 5px 0 ${sh}`, cursor:"pointer" }),
+    qCard: (cor, wr, lv) => ({ background:cor||lv?"#f0fdf4":wr?"#fef2f2":"#fff", border:`4px solid ${cor||lv?"#16a34a":wr?"#dc2626":"#d8d0f0"}`, boxShadow:`3px 3px 0 ${cor||lv?"#16a34a":wr?"#dc2626":"#c4b8e8"}`, padding:"10px 8px", minHeight:86, position:"relative" }),
+    inp: (lv,cor,wr) => ({ width:62, height:44, border:`4px solid ${lv||cor?"#16a34a":wr?"#dc2626":C.purpleMid}`, textAlign:"center", fontSize:19, fontWeight:900, marginLeft:5, background:lv||cor?"#dcfce7":wr?"#fee2e2":C.purpleLight, outline:"none", fontFamily:"'Nunito',sans-serif", color:C.purple, boxShadow:`2px 2px 0 ${lv||cor?"#16a34a":wr?"#dc2626":C.purpleMid}` }),
+    settingInp: { height:44, border:BD, padding:"0 12px", fontSize:15, fontWeight:700, background:"#fff", outline:"none", boxSizing:"border-box", fontFamily:"'Nunito',sans-serif", boxShadow:`3px 3px 0 ${C.shadow}`, color:C.purple },
   };
 
   // Timer color logic (only shown in speed phase)
-  const timerColor = time === 0 ? "#6b7280" : time <= currentLevel.masteryTime ? "#16a34a" : time <= currentLevel.masteryTime * 1.25 ? "#f59e0b" : "#ef4444";
+  const timerColor = time === 0 ? "#6b5e9e" : time <= currentLevel.masteryTime ? "#16a34a" : time <= currentLevel.masteryTime * 1.25 ? "#f59e0b" : "#ef4444";
 
   const stateLabel = { [LS.LOCKED]:"Locked", [LS.ACCURACY]:"Accuracy Phase", [LS.SPEED]:"Speed Phase", [LS.MASTERED]:"Mastered" };
-  const stateColor = { [LS.LOCKED]:"#9ca3af", [LS.ACCURACY]:"#3b82f6", [LS.SPEED]:"#f59e0b", [LS.MASTERED]:"#22c55e" };
+  const stateColor = { [LS.LOCKED]:"#9ca3af", [LS.ACCURACY]:"#4c2f9e", [LS.SPEED]:"#c9a227", [LS.MASTERED]:"#16a34a" };
 
   // ── Phase routing ────────────────────────────────────────────────────────────
   if (appPhase === PHASE.WELCOME) return <WelcomeScreen onNew={() => setAppPhase(PHASE.SIGNUP)} onReturn={() => setAppPhase(PHASE.PIN_ENTRY)} />;
@@ -994,7 +996,7 @@ export default function App() {
       <div style={S.wrap}>
 
         {/* ── Header ── */}
-        <div style={{ ...S.card, background:"#4f46e5", borderTop:"4px solid #ffd700", marginBottom:14 }}>
+        <div style={{ ...S.card, background:C.purple, borderTop:`4px solid ${C.gold}`, marginBottom:14 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:16, flexWrap:"wrap" }}>
             <div>
               <h1 style={{ ...S.h(17), color:"#ffd700" }}>Get Maths Mastery</h1>
