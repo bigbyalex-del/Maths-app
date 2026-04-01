@@ -255,9 +255,12 @@ function WelcomeScreen({ onNew, onReturn }) {
   return (
     <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"#fff", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:36, maxWidth:440, width:"100%", textAlign:"center" }}>
-        <div style={{ fontSize:64, marginBottom:8 }}>⭐</div>
+        <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:80, height:"auto", marginBottom:8 }} />
         <h1 style={{ fontFamily:PX, fontSize:14, color:"#4f46e5", lineHeight:1.8, marginBottom:8 }}>Get Maths Mastery</h1>
-        <p style={{ fontSize:14, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:32 }}>
+        <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:8, fontStyle:"italic" }}>
+          "I am the Maths Master. Prove your skill."
+        </p>
+        <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:32 }}>
           Accuracy first, speed second.<br/>Level up like a champion!
         </p>
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
@@ -502,11 +505,13 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
     return (
       <div style={{ minHeight:"100vh", background:"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
         <div style={{ background:"#fff", border:"4px solid #4f46e5", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #4f46e5", textAlign:"center" }}>
-          <div style={{ fontSize:56, marginBottom:12 }}>🎯</div>
-          <div style={{ fontFamily:PX, fontSize:12, color:"#4f46e5", marginBottom:16 }}>Placement Complete!</div>
-          <p style={{ fontSize:15, fontWeight:800, color:"#111", marginBottom:8 }}>Well done, {profileName}!</p>
+          <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:72, height:"auto", marginBottom:8 }} />
+          <div style={{ fontFamily:PX, fontSize:12, color:"#4f46e5", marginBottom:8 }}>Placement Complete!</div>
+          <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, fontStyle:"italic", marginBottom:8 }}>
+            "I have assessed your abilities, {profileName}."
+          </p>
           <p style={{ fontSize:13, color:"#6b7280", fontWeight:700, lineHeight:1.6, marginBottom:20 }}>
-            Based on your speed and accuracy, we're starting you here:
+            Based on your speed and accuracy, you begin here:
           </p>
           <div style={{ background:"#f0f4ff", border:"3px solid #4f46e5", padding:"16px 20px", marginBottom:8 }}>
             <div style={{ fontFamily:PX, fontSize:10, color:"#4f46e5", marginBottom:6 }}>{placedFlat?.sectionName}</div>
@@ -652,9 +657,13 @@ function CelebrationOverlay({ show, onDismiss, encouragement, newBadges }) {
     <div onClick={onDismiss} style={{ position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.7)",backdropFilter:"blur(4px)",cursor:"pointer" }}>
       {pieces.map((p,i) => <div key={i} style={{ position:"absolute",top:"-60px",left:p.left,width:p.size,height:p.size,background:p.color,borderRadius:i%2===0?"50%":2,animation:`confetti-fall 2.6s ease-in ${p.delay} both` }} />)}
       <div style={{ background:"#fff",border:"4px solid #111",boxShadow:"8px 8px 0 #111",padding:"36px 44px",textAlign:"center",maxWidth:420,animation:"celebrate-pulse 0.8s ease-in-out infinite" }}>
+        {encouragement?.type === "mastery" && (
+          <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:64, height:"auto", marginBottom:8 }} />
+        )}
         <div style={{ fontSize:52, marginBottom:8 }}>{encouragement?.emoji || "🌟"}</div>
         <div style={{ fontSize:28,fontWeight:900,color:"#111",fontFamily:"'Nunito',sans-serif",lineHeight:1.2 }}>{encouragement?.headline}</div>
         <div style={{ fontSize:15,color:"#374151",fontWeight:700,marginTop:10,lineHeight:1.5 }}>{encouragement?.body}</div>
+        {encouragement?.type === "mastery" && <p style={{ fontSize:13, color:"#4f46e5", fontWeight:800, fontStyle:"italic", marginTop:8 }}>"The Maths Master approves."</p>}
         {newBadges?.length > 0 && (
           <div style={{ marginTop:16,padding:"12px 16px",background:"#fef9c3",border:"2px solid #fbbf24" }}>
             <div style={{ fontSize:12,fontWeight:800,color:"#92400e",marginBottom:6 }}>BADGE EARNED!</div>
@@ -1238,7 +1247,13 @@ export default function App() {
         {/* ═══════════════ JOURNEY MAP ═══════════════ */}
         {activeTab === "journey" && (
           <div style={S.card}>
-            <div style={{ ...S.h(12), marginBottom:6 }}>Journey Map</div>
+            <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:6 }}>
+              <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:48, height:"auto", flexShrink:0 }} />
+              <div>
+                <div style={S.h(12)}>Journey Map</div>
+                <p style={{ ...S.sub, marginTop:4, fontStyle:"italic" }}>"{overallPct < 25 ? "Your journey begins. Stay focused." : overallPct < 50 ? "Good progress. Keep pushing forward." : overallPct < 75 ? "You are becoming a true mathematician." : overallPct < 100 ? "Almost there. Mastery is within reach." : "You have mastered all levels. Impressive."}"</p>
+              </div>
+            </div>
             <p style={{ ...S.sub, marginBottom:16 }}>Each level has two phases: Accuracy first, then Speed. Master both to unlock the next level.</p>
 
             {/* Overall progress */}
