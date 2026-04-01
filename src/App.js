@@ -253,14 +253,14 @@ function buildPlacementProgress(placedLevelId) {
 function WelcomeScreen({ onNew, onReturn }) {
   const PX = "'Press Start 2P', monospace";
   return (
-    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
-      <div style={{ background:"rgba(10,10,30,0.82)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:36, maxWidth:440, width:"100%", textAlign:"center", backdropFilter:"blur(2px)" }}>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-2.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ background:"rgba(255,255,255,0.88)", border:"4px solid #111", boxShadow:"8px 8px 0 #111", padding:36, maxWidth:440, width:"100%", textAlign:"center", backdropFilter:"blur(2px)" }}>
         <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:140, height:"auto", marginBottom:12 }} />
-        <h1 style={{ fontFamily:PX, fontSize:14, color:"#ffd700", lineHeight:1.8, marginBottom:8 }}>Get Maths Mastery</h1>
-        <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, lineHeight:1.6, marginBottom:8, fontStyle:"italic" }}>
+        <h1 style={{ fontFamily:PX, fontSize:14, color:"#4f46e5", lineHeight:1.8, marginBottom:8 }}>Get Maths Mastery</h1>
+        <p style={{ fontSize:13, color:"#4f46e5", fontWeight:700, lineHeight:1.6, marginBottom:8, fontStyle:"italic" }}>
           "I am the Maths Master. Prove your skill."
         </p>
-        <p style={{ fontSize:13, color:"#e2e8f0", fontWeight:700, lineHeight:1.6, marginBottom:32 }}>
+        <p style={{ fontSize:13, color:"#374151", fontWeight:700, lineHeight:1.6, marginBottom:32 }}>
           Accuracy first, speed second.<br/>Level up like a champion!
         </p>
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
