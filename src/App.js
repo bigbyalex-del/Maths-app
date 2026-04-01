@@ -1257,21 +1257,18 @@ export default function App() {
               </div>
             </div>
             <p style={{ ...S.sub, marginBottom:16 }}>Each level has two phases: Accuracy first, then Speed. Master both to unlock the next level.</p>
-
-            {/* Overall progress */}
             <div style={{ marginBottom:20 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, fontWeight:700, marginBottom:5, color:"#6b7280" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, fontWeight:700, marginBottom:5, color:"#6b5e9e" }}>
                 <span>Overall mastery</span><span>{masteredCount} of {flatLevels.length} levels ({overallPct}%)</span>
               </div>
               <div style={{ width:"100%", height:18, background:"#e5e7eb", border:BD, overflow:"hidden" }}>
-                <div style={{ width:`${overallPct}%`, height:"100%", background:"#4f46e5", transition:"width 0.4s" }} />
+                <div style={{ width:`${overallPct}%`, height:"100%", background:C.gold, transition:"width 0.4s" }} />
               </div>
             </div>
-
             {CURRICULUM.map(section => (
               <div key={section.id} style={{ ...S.flat, borderLeft:`6px solid ${section.color}`, marginBottom:14 }}>
-                <div style={{ fontWeight:900, fontSize:16, color:"#111", marginBottom:3 }}>{section.name}</div>
-                <div style={{ fontSize:12, color:"#6b7280", fontWeight:700, marginBottom:10, lineHeight:1.5 }}>💡 {section.tip}</div>
+                <div style={{ fontWeight:900, fontSize:16, color:C.purple, marginBottom:3 }}>{section.name}</div>
+                <div style={{ fontSize:12, color:"#6b5e9e", fontWeight:700, marginBottom:10, lineHeight:1.5 }}>💡 {section.tip}</div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))", gap:8 }}>
                   {section.levels.map(level => {
                     const state = getLevelState(level.id, levelProgress);
@@ -1283,12 +1280,12 @@ export default function App() {
                       <button key={level.id} onClick={() => !isLocked && practiceLevel(level.id)} className={isLocked ? "" : "fun-btn"}
                         style={{ textAlign:"left", border:`4px solid ${isLocked?"#e5e7eb":sc}`, padding:12, background:isMastered?"#f0fdf4":state===LS.SPEED?"#fffbeb":state===LS.ACCURACY?"#eff6ff":"#f9fafb", cursor:isLocked?"not-allowed":"pointer", boxShadow:isLocked?"none":`4px 4px 0 ${sc}`, opacity:isLocked?0.55:1 }}>
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:6 }}>
-                          <div style={{ fontWeight:900, fontSize:13, color:isLocked?"#9ca3af":"#111" }}>{level.title}</div>
+                          <div style={{ fontWeight:900, fontSize:13, color:isLocked?"#9ca3af":C.purple }}>{level.title}</div>
                           <span style={{ fontFamily:PX, fontSize:7, color:sc, lineHeight:1.6, whiteSpace:"nowrap" }}>
                             {isMastered?"✓":state===LS.SPEED?"⚡":state===LS.ACCURACY?"🎯":"🔒"}
                           </span>
                         </div>
-                        <div style={{ fontSize:11, color:"#6b7280", fontWeight:700, marginTop:3 }}>{level.skill}</div>
+                        <div style={{ fontSize:11, color:"#6b5e9e", fontWeight:700, marginTop:3 }}>{level.skill}</div>
                         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", gap:6, alignItems:"center" }}>
                           <span style={{ fontSize:11, fontWeight:700, color:"#9ca3af" }}>Target: {formatTime(level.masteryTime)}</span>
                           {prog.bestTime != null && <span style={{ fontSize:11, fontWeight:800, color:"#16a34a" }}>Best: {formatTime(prog.bestTime)}</span>}
