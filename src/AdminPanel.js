@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { db } from "./firebase";
-import { collection, getDocs, deleteDoc, doc, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteField } from "firebase/firestore";
 
 // ── Change this to whatever you want your admin password to be ────────────────
 const ADMIN_PASSWORD = "mathsmaster2024";
@@ -197,17 +197,20 @@ export default function AdminPanel() {
     else { setPwError(true); setPwInput(""); }
   };
 
-  const handleDelete = async (profileId) => {
-    await deleteDoc(doc(db, "profiles", profileId));
+  const handleDelete = async (profile) => {
+    const docRef = doc(db, "profiles", profile._docId);
+    // Remove just this profile's entry from the nested profiles map
+    await updateDoc(docRef, { [`profiles.${profile.id}`]: deleteField() });
     setSelected(null);
     await fetchProfiles();
   };
 
   const handleResetProgress = async (profile) => {
-    const reset = { ...profile, levelProgress: {}, badges: [], totalQuestions: 0,
+    const { _docId, id, name } = profile;
+    const reset = { id, name, levelProgress: {}, badges: [], totalQuestions: 0,
       streak: 0, bestStreak: 0, lastCompletedDate: "", history: [],
       consecutivePerfects: 0, bossKills: {}, placementDone: false };
-    await setDoc(doc(db, "profiles", profile.id), reset);
+    await updateDoc(doc(db, "profiles", _docId), { [`profiles.${id}`]: reset });
     setSelected(null);
     await fetchProfiles();
   };
@@ -406,7 +409,7 @@ export default function AdminPanel() {
         <AccountModal
           profile={selected}
           onClose={() => setSelected(null)}
-          onDelete={() => handleDelete(selected.id)}
+          onDelete={() => handleDelete(selected)}
           onResetProgress={() => handleResetProgress(selected)}
         />
       )}
