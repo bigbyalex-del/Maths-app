@@ -96,6 +96,14 @@ function AccountModal({ profile, onClose, onDelete, onResetProgress }) {
           </div>
         )}
 
+        {/* Raw data debug */}
+        <details style={{ marginBottom:12 }}>
+          <summary style={{ fontSize:10, color:"#475569", cursor:"pointer", fontWeight:700 }}>RAW DATA (debug)</summary>
+          <pre style={{ fontSize:9, color:"#64748b", background:"#060610", padding:10, overflow:"auto", maxHeight:160, marginTop:6 }}>
+            {JSON.stringify(profile, null, 2)}
+          </pre>
+        </details>
+
         {/* Actions */}
         {confirming ? (
           <div style={{ background:"rgba(239,68,68,0.12)", border:"2px solid #ef4444", padding:14, marginTop:8 }}>
