@@ -142,44 +142,132 @@ function getMasteredIds(levelProgress) {
 
 // ── Badge system ──────────────────────────────────────────────────────────────
 const BADGE_DEFS = [
-  { id: "first_accuracy", label: "First Step",     desc: "Passed your first accuracy check",     color: "#22c55e" },
-  { id: "first_speed",    label: "Speed Starter",  desc: "Earned your first speed pass",         color: "#3b82f6" },
-  { id: "first_master",   label: "Level Master",   desc: "Mastered your first level",            color: "#f59e0b" },
-  { id: "five_master",    label: "Rising Star",    desc: "Mastered 5 levels",                    color: "#a855f7" },
-  { id: "ten_master",     label: "Ten Strong",     desc: "Mastered 10 levels",                   color: "#ec4899" },
-  { id: "halfway",        label: "Halfway Hero",   desc: `Mastered half the levels`,             color: "#06b6d4" },
-  { id: "all_master",     label: "Maths Champion", desc: "Mastered every single level!",         color: "#ffd700" },
-  { id: "perfect",        label: "Perfect Sheet",  desc: "100% accuracy on a speed phase",       color: "#22c55e" },
-  { id: "personal_best",  label: "Personal Best",  desc: "Beat your best time on a level",       color: "#3b82f6" },
-  { id: "q100",           label: "Centurion",      desc: "Answered 100 questions correctly",     color: "#f59e0b" },
-  { id: "q500",           label: "500 Club",       desc: "Answered 500 questions correctly",     color: "#a855f7" },
-  { id: "q1000",          label: "Thousand!",      desc: "Answered 1000 questions correctly",    color: "#ef4444" },
-  { id: "streak3",        label: "On a Roll",      desc: "3-day practice streak",                color: "#f97316" },
-  { id: "streak7",        label: "Week Warrior",   desc: "7-day practice streak",                color: "#ef4444" },
-  { id: "streak14",       label: "Fortnight+",     desc: "14-day practice streak",               color: "#ffd700" },
+  // ── Common ────────────────────────────────────────────────────────────────
+  { id:"first_accuracy",  tier:1, label:"First Step",       desc:"Passed your first accuracy check",              color:"#22c55e", image:"/badges/first_accuracy.png" },
+  { id:"first_speed",     tier:1, label:"Speed Starter",    desc:"Earned your first speed pass",                  color:"#3b82f6", image:"/badges/first_speed.png" },
+  { id:"first_master",    tier:1, label:"Level Master",     desc:"Mastered your first level",                     color:"#f59e0b", image:"/badges/first_master.png" },
+  { id:"q100",            tier:1, label:"Centurion",        desc:"Answered 100 questions correctly",              color:"#f59e0b", image:"/badges/q100.png" },
+  { id:"streak3",         tier:1, label:"On a Roll",        desc:"3-day practice streak",                         color:"#f97316", image:"/badges/streak3.png" },
+  { id:"early_riser",     tier:1, label:"Early Riser",      desc:"Practised before 8am",                          color:"#fbbf24", image:"/badges/early_riser.png" },
+  { id:"night_owl",       tier:1, label:"Night Owl",        desc:"Practised after 9pm",                           color:"#818cf8", image:"/badges/night_owl.png" },
+  { id:"comeback_kid",    tier:1, label:"Comeback Kid",     desc:"Returned after a 5+ day break",                 color:"#f87171", image:"/badges/comeback_kid.png" },
+  // ── Uncommon ──────────────────────────────────────────────────────────────
+  { id:"five_master",     tier:2, label:"Rising Star",      desc:"Mastered 5 levels",                             color:"#a855f7", image:"/badges/five_master.png" },
+  { id:"personal_best",   tier:2, label:"Personal Best",    desc:"Beat your best time on a level",                color:"#3b82f6", image:"/badges/personal_best.png" },
+  { id:"perfect",         tier:2, label:"Perfect Sheet",    desc:"100% accuracy on a speed phase",                color:"#22c55e", image:"/badges/perfect.png" },
+  { id:"q500",            tier:2, label:"500 Club",         desc:"Answered 500 questions",                        color:"#a855f7", image:"/badges/q500.png" },
+  { id:"streak7",         tier:2, label:"Week Warrior",     desc:"7-day practice streak",                         color:"#ef4444", image:"/badges/streak7.png" },
+  { id:"speed_demon",     tier:2, label:"Speed Demon",      desc:"Beat a target time by 25% or more",             color:"#f97316", image:"/badges/speed_demon.png" },
+  { id:"double_perfect",  tier:2, label:"Double Trouble",   desc:"Two perfect sheets in a row",                   color:"#06b6d4", image:"/badges/double_perfect.png" },
+  { id:"q250",            tier:2, label:"250 Club",         desc:"Answered 250 questions",                        color:"#22c55e", image:"/badges/q250.png" },
+  // ── Rare ──────────────────────────────────────────────────────────────────
+  { id:"ten_master",      tier:3, label:"Ten Strong",       desc:"Mastered 10 levels",                            color:"#ec4899", image:"/badges/ten_master.png" },
+  { id:"halfway",         tier:3, label:"Halfway Hero",     desc:"Mastered half of all levels",                   color:"#06b6d4", image:"/badges/halfway.png" },
+  { id:"q1000",           tier:3, label:"Thousand!",        desc:"Answered 1,000 questions",                      color:"#ef4444", image:"/badges/q1000.png" },
+  { id:"streak14",        tier:3, label:"Fortnight+",       desc:"14-day practice streak",                        color:"#ffd700", image:"/badges/streak14.png" },
+  { id:"fifteen_master",  tier:3, label:"The Adept",        desc:"Mastered 15 levels",                            color:"#8b5cf6", image:"/badges/fifteen_master.png" },
+  { id:"triple_perfect",  tier:3, label:"Hat Trick",        desc:"Three perfect sheets in a row",                 color:"#14b8a6", image:"/badges/triple_perfect.png" },
+  { id:"streak30",        tier:3, label:"Month of Maths",   desc:"30-day practice streak",                        color:"#f59e0b", image:"/badges/streak30.png" },
+  { id:"q2500",           tier:3, label:"2500 Club",        desc:"Answered 2,500 questions",                      color:"#06b6d4", image:"/badges/q2500.png" },
+  { id:"speed_master",    tier:3, label:"Speed Master",     desc:"Beat the target time on 5 different levels",    color:"#ef4444", image:"/badges/speed_master.png" },
+  { id:"twenty_master",   tier:3, label:"The Expert",       desc:"Mastered 20 levels",                            color:"#ec4899", image:"/badges/twenty_master.png" },
+  // ── Zone Trophies ─────────────────────────────────────────────────────────
+  { id:"zone_foundations",    tier:3, label:"Foundations Champion", desc:"Cleared all Addition Foundations levels",  color:"#22c55e", image:"/badges/zone_foundations.png" },
+  { id:"zone_add20",          tier:3, label:"Sky Champion",         desc:"Cleared all Addition to 20 levels",        color:"#3b82f6", image:"/badges/zone_add20.png" },
+  { id:"zone_subtraction",    tier:3, label:"Castle Champion",      desc:"Cleared all Subtraction levels",           color:"#8b5cf6", image:"/badges/zone_subtraction.png" },
+  { id:"zone_place_value",    tier:3, label:"Desert Champion",      desc:"Cleared all Place Value levels",           color:"#f59e0b", image:"/badges/zone_place_value.png" },
+  { id:"zone_ops100",         tier:4, label:"Volcano Champion",     desc:"Cleared all Add & Subtract to 100 levels", color:"#ef4444", image:"/badges/zone_ops100.png" },
+  { id:"zone_multiplication", tier:4, label:"Ocean Champion",       desc:"Cleared all Multiplication levels",        color:"#06b6d4", image:"/badges/zone_multiplication.png" },
+  { id:"zone_division",       tier:4, label:"Forest Champion",      desc:"Cleared all Division levels",              color:"#14b8a6", image:"/badges/zone_division.png" },
+  // ── Epic ──────────────────────────────────────────────────────────────────
+  { id:"twentyfive_master",   tier:4, label:"The Scholar",          desc:"Mastered 25 levels",                       color:"#a855f7", image:"/badges/twentyfive_master.png" },
+  { id:"streak60",            tier:4, label:"Two Month Titan",      desc:"60-day practice streak",                   color:"#f97316", image:"/badges/streak60.png" },
+  { id:"q5000",               tier:4, label:"5K Legend",            desc:"Answered 5,000 questions",                 color:"#8b5cf6", image:"/badges/q5000.png" },
+  { id:"flawless_ten",        tier:4, label:"Flawless",             desc:"10 perfect accuracy sheets in total",      color:"#14b8a6", image:"/badges/flawless_ten.png" },
+  { id:"all_zones",           tier:4, label:"World Beater",         desc:"Cleared every single zone",                color:"#ffd700", image:"/badges/all_zones.png" },
+  { id:"accuracy_master",     tier:4, label:"Precision Master",     desc:"Achieved 95%+ accuracy in 20 sessions",    color:"#22c55e", image:"/badges/accuracy_master.png" },
+  // ── Legendary ─────────────────────────────────────────────────────────────
+  { id:"all_master",          tier:5, label:"Maths Champion",       desc:"Mastered every single level!",             color:"#ffd700", image:"/badges/all_master.png" },
+  { id:"q10000",              tier:5, label:"Ten Thousand",         desc:"Answered 10,000 questions — astonishing!", color:"#a855f7", image:"/badges/q10000.png" },
+  { id:"streak100",           tier:5, label:"Centurion Streak",     desc:"100-day practice streak",                  color:"#ef4444", image:"/badges/streak100.png" },
+  { id:"speed_legend",        tier:5, label:"Speed Legend",         desc:"Beat the target time on 10+ different levels", color:"#f97316", image:"/badges/speed_legend.png" },
+  { id:"grandmaster",         tier:5, label:"Grandmaster",          desc:"All levels mastered and a 30-day streak",  color:"#ffd700", image:"/badges/grandmaster.png" },
+  { id:"unstoppable",         tier:5, label:"Unstoppable",          desc:"A 100-day streak AND all levels mastered", color:"#ec4899", image:"/badges/unstoppable.png" },
+  { id:"the_legend",          tier:5, label:"The Legend",           desc:"10,000 questions, all mastered, 60-day streak", color:"#ffd700", image:"/badges/the_legend.png" },
 ];
 
 function computeNewBadges(profile, sessionData) {
-  const { accuracy, isSpeedPhase, newSpeedPasses, newMasteredCount, newTotalQ, newStreak, isBestTime } = sessionData;
+  const { accuracy, isSpeedPhase, newSpeedPasses, newMasteredCount, newTotalQ, newStreak,
+          isBestTime, levelProgress, time, masteryTime, currentHour = -1,
+          newConsecutivePerfects = 0, daysSinceLastPractice = 0, newHighAccuracySessions = 0 } = sessionData;
   const already = new Set(profile.badges || []);
   const earned = [];
   const add = (id) => { if (!already.has(id)) earned.push(id); };
 
-  if (!isSpeedPhase && accuracy >= ACCURACY_THRESHOLD) add("first_accuracy");
+  // ── Common ───────────────────────────────────────────────────────────────
+  if (!isSpeedPhase && accuracy >= ACCURACY_THRESHOLD)                       add("first_accuracy");
   if (isSpeedPhase && accuracy >= ACCURACY_THRESHOLD && newSpeedPasses >= 1) add("first_speed");
-  if (newMasteredCount >= 1) add("first_master");
-  if (newMasteredCount >= 5) add("five_master");
-  if (newMasteredCount >= 10) add("ten_master");
-  if (newMasteredCount >= Math.floor(flatLevels.length / 2)) add("halfway");
-  if (newMasteredCount >= flatLevels.length) add("all_master");
-  if (isSpeedPhase && accuracy === 100) add("perfect");
-  if (isBestTime) add("personal_best");
-  if (newTotalQ >= 100) add("q100");
-  if (newTotalQ >= 500) add("q500");
-  if (newTotalQ >= 1000) add("q1000");
-  if (newStreak >= 3) add("streak3");
-  if (newStreak >= 7) add("streak7");
-  if (newStreak >= 14) add("streak14");
+  if (newMasteredCount >= 1)                                                 add("first_master");
+  if (newTotalQ >= 100)                                                      add("q100");
+  if (newStreak >= 3)                                                        add("streak3");
+  if (currentHour >= 0 && currentHour < 8)                                  add("early_riser");
+  if (currentHour >= 21)                                                     add("night_owl");
+  if (daysSinceLastPractice >= 5)                                            add("comeback_kid");
+
+  // ── Uncommon ─────────────────────────────────────────────────────────────
+  if (newMasteredCount >= 5)                                                 add("five_master");
+  if (isBestTime)                                                            add("personal_best");
+  if (isSpeedPhase && accuracy === 100)                                      add("perfect");
+  if (newTotalQ >= 250)                                                      add("q250");
+  if (newTotalQ >= 500)                                                      add("q500");
+  if (newStreak >= 7)                                                        add("streak7");
+  if (isSpeedPhase && masteryTime && time <= masteryTime * 0.75)             add("speed_demon");
+  if (newConsecutivePerfects >= 2)                                           add("double_perfect");
+
+  // ── Rare ─────────────────────────────────────────────────────────────────
+  if (newMasteredCount >= 10)                                                add("ten_master");
+  if (newMasteredCount >= Math.floor(flatLevels.length / 2))                add("halfway");
+  if (newTotalQ >= 1000)                                                     add("q1000");
+  if (newStreak >= 14)                                                       add("streak14");
+  if (newMasteredCount >= 15)                                                add("fifteen_master");
+  if (newConsecutivePerfects >= 3)                                           add("triple_perfect");
+  if (newStreak >= 30)                                                       add("streak30");
+  if (newTotalQ >= 2500)                                                     add("q2500");
+  if (newMasteredCount >= 20)                                                add("twenty_master");
+  const levelsBeatTarget = levelProgress ? flatLevels.filter(l => {
+    const p = levelProgress[l.id];
+    return p?.bestTime != null && p.bestTime <= l.masteryTime;
+  }).length : 0;
+  if (levelsBeatTarget >= 5)                                                 add("speed_master");
+
+  // Zone trophies
+  if (levelProgress) {
+    const secMastered = (id) => { const s = CURRICULUM.find(c => c.id === id); return s && s.levels.every(l => levelProgress[l.id]?.state === LS.MASTERED); };
+    if (secMastered("foundations"))    add("zone_foundations");
+    if (secMastered("add-20"))         add("zone_add20");
+    if (secMastered("subtraction"))    add("zone_subtraction");
+    if (secMastered("place-value"))    add("zone_place_value");
+    if (secMastered("ops-100"))        add("zone_ops100");
+    if (secMastered("multiplication")) add("zone_multiplication");
+    if (secMastered("division"))       add("zone_division");
+  }
+
+  // ── Epic ─────────────────────────────────────────────────────────────────
+  if (newMasteredCount >= 25)                                                add("twentyfive_master");
+  if (newStreak >= 60)                                                       add("streak60");
+  if (newTotalQ >= 5000)                                                     add("q5000");
+  if (isSpeedPhase && accuracy === 100 && (profile.perfectSheets || 0) >= 10) add("flawless_ten");
+  if (levelProgress && CURRICULUM.every(s => s.levels.every(l => levelProgress[l.id]?.state === LS.MASTERED))) add("all_zones");
+  if (newHighAccuracySessions >= 20)                                         add("accuracy_master");
+
+  // ── Legendary ────────────────────────────────────────────────────────────
+  if (newMasteredCount >= flatLevels.length)                                 add("all_master");
+  if (newTotalQ >= 10000)                                                    add("q10000");
+  if (newStreak >= 100)                                                      add("streak100");
+  if (levelsBeatTarget >= 10)                                                add("speed_legend");
+  if (newMasteredCount >= flatLevels.length && newStreak >= 30)             add("grandmaster");
+  if (newMasteredCount >= flatLevels.length && newStreak >= 100)            add("unstoppable");
+  if (newMasteredCount >= flatLevels.length && newTotalQ >= 10000 && newStreak >= 60) add("the_legend");
 
   return earned;
 }
@@ -900,8 +988,20 @@ export default function App() {
     const newTotalQ = totalQuestions + score.correct;
     const newMasteredCount = getMasteredIds(newLevelProgress).length;
 
-    // Badges
-    const newBadges = computeNewBadges({ badges }, { accuracy, isSpeedPhase, newSpeedPasses, newMasteredCount, newTotalQ, newStreak, isBestTime, levelProgress: newLevelProgress });
+    // Badges — extra tracking vars
+    const isPerfectSpeed = isSpeedPhase && accuracy === 100;
+    const newConsecutivePerfects = isPerfectSpeed ? (profile.consecutivePerfects || 0) + 1 : 0;
+    const newPerfectSheets = (profile.perfectSheets || 0) + (isPerfectSpeed ? 1 : 0);
+    const newHighAccuracySessions = (profile.highAccuracySessions || 0) + (accuracy >= ACCURACY_THRESHOLD ? 1 : 0);
+    const currentHour = new Date().getHours();
+    const daysSinceLastPractice = lastCompletedDate
+      ? Math.floor((Date.now() - new Date(lastCompletedDate)) / 86400000) : 0;
+    const newBadges = computeNewBadges(
+      { badges, perfectSheets: newPerfectSheets },
+      { accuracy, isSpeedPhase, newSpeedPasses, newMasteredCount, newTotalQ, newStreak,
+        isBestTime, levelProgress: newLevelProgress, time, masteryTime: currentLevel.masteryTime,
+        currentHour, newConsecutivePerfects, daysSinceLastPractice, newHighAccuracySessions }
+    );
 
     // Timings
     const timings = Object.entries(questionTimings).map(([idx, ms]) => {
@@ -1311,20 +1411,42 @@ export default function App() {
         {/* ═══════════════ BADGES ═══════════════ */}
         {activeTab === "badges" && (
           <div style={S.card}>
-            <div style={{ ...S.h(12), marginBottom:6 }}>Badges</div>
-            <p style={{ ...S.sub, marginBottom:20 }}>Earn badges by practising consistently and mastering levels. Keep going!</p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:12 }}>
-              {BADGE_DEFS.map(b => {
-                const earned = badges.includes(b.id);
-                return (
-                  <div key={b.id} style={{ border:`4px solid ${earned?b.color:"#e5e7eb"}`, padding:16, background:earned?`${b.color}11`:"#f9fafb", boxShadow:earned?`4px 4px 0 ${b.color}66`:"none", opacity:earned?1:0.45 }}>
-                    <div style={{ fontWeight:900, fontSize:15, color:earned?b.color:"#9ca3af" }}>{b.label}</div>
-                    <div style={{ fontSize:12, color:"#6b7280", fontWeight:700, marginTop:4, lineHeight:1.5 }}>{b.desc}</div>
-                    {earned && <div style={{ marginTop:8, fontFamily:PX, fontSize:7, color:b.color, lineHeight:1.8 }}>EARNED</div>}
-                  </div>
-                );
-              })}
-            </div>
+            <div style={{ ...S.h(12), marginBottom:4 }}>Badges</div>
+            <p style={{ ...S.sub, marginBottom:20 }}>Earn badges by practising consistently and mastering levels. {badges.length}/{BADGE_DEFS.length} earned.</p>
+            {[
+              { tier:1, label:"Common",    color:"#6b7280" },
+              { tier:2, label:"Uncommon",  color:"#22c55e" },
+              { tier:3, label:"Rare",      color:"#3b82f6" },
+              { tier:4, label:"Epic",      color:"#a855f7" },
+              { tier:5, label:"Legendary", color:"#f59e0b" },
+            ].map(({ tier, label, color }) => (
+              <div key={tier} style={{ marginBottom:24 }}>
+                <div style={{ fontFamily:PX, fontSize:8, color, lineHeight:1.8, marginBottom:10,
+                  borderBottom:`2px solid ${color}44`, paddingBottom:6 }}>✦ {label}</div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:10 }}>
+                  {BADGE_DEFS.filter(b => b.tier === tier).map(b => {
+                    const earned = badges.includes(b.id);
+                    return (
+                      <div key={b.id} style={{ border:`3px solid ${earned?b.color:"#e5e7eb"}`, padding:12,
+                        background:earned?`${b.color}11`:"#f9fafb", boxShadow:earned?`4px 4px 0 ${b.color}44`:"none",
+                        display:"flex", gap:10, alignItems:"flex-start" }}>
+                        <div style={{ width:44, height:44, flexShrink:0, display:"flex", alignItems:"center",
+                          justifyContent:"center", background:earned?`${b.color}22`:"#f0f0f0",
+                          border:`2px solid ${earned?b.color:"#e5e7eb"}` }}>
+                          {b.image && <img src={b.image} alt={b.label}
+                            style={{ imageRendering:"pixelated", width:36, height:36, objectFit:"contain", opacity:earned?1:0.25 }} />}
+                        </div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontWeight:900, fontSize:12, color:earned?b.color:"#9ca3af", lineHeight:1.3 }}>{b.label}</div>
+                          <div style={{ fontSize:11, color:"#6b7280", fontWeight:700, marginTop:3, lineHeight:1.4 }}>{b.desc}</div>
+                          {earned && <div style={{ marginTop:5, fontFamily:PX, fontSize:6, color:b.color, lineHeight:1.8 }}>✓ EARNED</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
