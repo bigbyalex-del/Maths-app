@@ -149,7 +149,20 @@ export default function AdminPanel() {
     setLoading(true);
     try {
       const snap = await getDocs(collection(db, "profiles"));
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Each Firestore doc is a household: { appSettings, profiles: { pinId: { name, ... } } }
+      const data = [];
+      snap.docs.forEach(d => {
+        const docData = d.data();
+        const nestedProfiles = docData.profiles;
+        if (nestedProfiles && typeof nestedProfiles === "object") {
+          Object.entries(nestedProfiles).forEach(([profileId, profile]) => {
+            data.push({ ...profile, id: profileId, _docId: d.id });
+          });
+        } else {
+          // Flat structure fallback
+          data.push({ id: d.id, _docId: d.id, ...docData });
+        }
+      });
       setProfiles(data);
     } catch (e) {
       console.error("Failed to fetch profiles:", e);
