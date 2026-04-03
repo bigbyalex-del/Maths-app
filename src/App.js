@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const STORAGE_KEY = "maths-app-v3";
 const QUESTIONS_PER_SHEET = 36;
+const PAGE_SIZE = 12; // questions per page (3 pages per session)
 const ACCURACY_THRESHOLD = 95;   // % needed to pass each phase
 const SPEED_PASSES_NEEDED = 3;    // consecutive speed passes to master a level
 const REVIEW_Q_COUNT = 9;         // review questions mixed in during speed phase
@@ -196,10 +197,34 @@ const BADGE_DEFS = [
   { id:"the_legend",          tier:5, label:"The Legend",           desc:"10,000 questions, all mastered, 60-day streak", color:"#ffd700", image:"/badges/the_legend.png" },
 ];
 
+// ── Per-level badges (one per curriculum level, earned on mastery) ─────────────
+const LEVEL_BADGE_DEFS = flatLevels.map(l => ({
+  id: `level_${l.id}`,
+  tier: 2,
+  label: `${l.title}`,
+  desc: `Mastered ${l.title} — ${l.skill}`,
+  color: l.sectionColor,
+  image: `/badges/level_${l.id}.png`,
+  levelId: l.id,
+  sectionId: l.sectionId,
+  sectionName: l.sectionName,
+}));
+
+const ALL_BADGE_DEFS = [...BADGE_DEFS, ...LEVEL_BADGE_DEFS];
+
+const TIER_INFO = {
+  1: { label:"Common",    color:"#6b7280" },
+  2: { label:"Uncommon",  color:"#22c55e" },
+  3: { label:"Rare",      color:"#3b82f6" },
+  4: { label:"Epic",      color:"#a855f7" },
+  5: { label:"Legendary", color:"#f59e0b" },
+};
+
 function computeNewBadges(profile, sessionData) {
   const { accuracy, isSpeedPhase, newSpeedPasses, newMasteredCount, newTotalQ, newStreak,
           isBestTime, levelProgress, time, masteryTime, currentHour = -1,
-          newConsecutivePerfects = 0, daysSinceLastPractice = 0, newHighAccuracySessions = 0 } = sessionData;
+          newConsecutivePerfects = 0, daysSinceLastPractice = 0, newHighAccuracySessions = 0,
+          justMasteredLevelId = null } = sessionData;
   const already = new Set(profile.badges || []);
   const earned = [];
   const add = (id) => { if (!already.has(id)) earned.push(id); };
@@ -268,6 +293,11 @@ function computeNewBadges(profile, sessionData) {
   if (newMasteredCount >= flatLevels.length && newStreak >= 30)             add("grandmaster");
   if (newMasteredCount >= flatLevels.length && newStreak >= 100)            add("unstoppable");
   if (newMasteredCount >= flatLevels.length && newTotalQ >= 10000 && newStreak >= 60) add("the_legend");
+
+  // ── Level badges ─────────────────────────────────────────────────────────────
+  if (justMasteredLevelId) {
+    add(`level_${justMasteredLevelId}`);
+  }
 
   return earned;
 }
@@ -764,6 +794,64 @@ function CelebrationOverlay({ show, onDismiss, encouragement, newBadges }) {
   );
 }
 
+// ── BadgeImg — shows image or colored fallback if missing ─────────────────────
+function BadgeImg({ src, color, earned, size = 44 }) {
+  const [err, setErr] = useState(false);
+  if (!err && src) {
+    return <img src={src} alt="" onError={() => setErr(true)}
+      style={{ imageRendering:"pixelated", width:size, height:size, objectFit:"contain",
+        opacity: earned ? 1 : 0.2, display:"block", flexShrink:0 }} />;
+  }
+  return (
+    <div style={{ width:size, height:size, display:"flex", alignItems:"center", justifyContent:"center",
+      background: earned ? `${color}33` : "#f3f4f6", border:`2px solid ${earned ? color : "#e5e7eb"}`,
+      flexShrink:0 }}>
+      <span style={{ fontSize: size * 0.35, opacity: earned ? 1 : 0.25 }}>★</span>
+    </div>
+  );
+}
+
+// ── BadgeDetailModal ──────────────────────────────────────────────────────────
+function BadgeDetailModal({ badge, earned, onClose }) {
+  if (!badge) return null;
+  const tier = TIER_INFO[badge.tier] || TIER_INFO[1];
+  const PX = "'Press Start 2P', monospace";
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:9998, display:"flex", alignItems:"center", justifyContent:"center",
+      background:"rgba(0,0,0,0.75)", backdropFilter:"blur(4px)", cursor:"pointer", padding:16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:"#fff", border:`4px solid ${earned ? badge.color : "#d1d5db"}`,
+        boxShadow:`8px 8px 0 ${earned ? badge.color + "88" : "#111"}`, padding:32, maxWidth:360, width:"100%",
+        textAlign:"center", cursor:"default" }}>
+        {/* Badge image */}
+        <div style={{ width:120, height:120, margin:"0 auto 16px", display:"flex", alignItems:"center", justifyContent:"center",
+          background: earned ? `${badge.color}22` : "#f3f4f6", border:`3px solid ${earned ? badge.color : "#e5e7eb"}` }}>
+          <BadgeImg src={badge.image} color={badge.color} earned={earned} size={96} />
+        </div>
+        {/* Tier label */}
+        <div style={{ display:"inline-block", padding:"3px 12px", background:`${tier.color}22`, border:`2px solid ${tier.color}`,
+          fontFamily:PX, fontSize:7, color:tier.color, lineHeight:1.8, marginBottom:10 }}>
+          {tier.label}
+        </div>
+        {/* Name */}
+        <div style={{ fontFamily:PX, fontSize:12, color: earned ? badge.color : "#9ca3af", lineHeight:1.7, marginBottom:8 }}>
+          {badge.label}
+        </div>
+        {/* Description */}
+        <div style={{ fontSize:13, color:"#374151", fontWeight:700, lineHeight:1.6, marginBottom:16 }}>{badge.desc}</div>
+        {/* Status */}
+        {earned ? (
+          <div style={{ padding:"8px 16px", background:`${badge.color}22`, border:`2px solid ${badge.color}`,
+            fontFamily:PX, fontSize:8, color:badge.color, lineHeight:1.8 }}>✓ EARNED</div>
+        ) : (
+          <div style={{ padding:"8px 16px", background:"#f9fafb", border:"2px solid #e5e7eb",
+            fontSize:12, color:"#6b7280", fontWeight:700, fontStyle:"italic" }}>Not yet earned</div>
+        )}
+        <div style={{ marginTop:16, fontSize:11, color:"#9ca3af", fontWeight:700 }}>Tap anywhere to close</div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
   const loaded = loadState();
@@ -779,6 +867,8 @@ export default function App() {
 
   // Worksheet state
   const [answers, setAnswers] = useState({});
+  const [lockedAnswers, setLockedAnswers] = useState(new Set()); // indices locked after first entry
+  const [currentPage, setCurrentPage] = useState(0); // 0, 1, 2
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -787,6 +877,9 @@ export default function App() {
   const [questionTimings, setQuestionTimings] = useState({});
   const inputRefs = useRef([]);
   const questionStartTimesRef = useRef({});
+
+  // Badge detail modal
+  const [selectedBadge, setSelectedBadge] = useState(null);
 
   // Settings
   const [pinEntry, setPinEntry] = useState("");
@@ -862,13 +955,11 @@ export default function App() {
   }, [answers, problems]);
 
   const hasAny = useMemo(() => Object.values(answers).some(v => String(v || "").trim() !== ""), [answers]);
-  const allCorrect = useMemo(() => problems.every((p, i) => normalizeAnswer(answers[i] || "") === normalizeAnswer(p.answer)), [answers, problems]);
 
   useEffect(() => {
     if (done) return;
-    if (hasAny && !allCorrect && !running) setRunning(true);
-    if (allCorrect && hasAny && running) setRunning(false);
-  }, [hasAny, allCorrect, running, done]);
+    if (hasAny && !running) setRunning(true);
+  }, [hasAny, running, done]);
 
   function updateProfile(patch) {
     setProfiles(prev => ({ ...prev, [activeProfileId]: { ...prev[activeProfileId], ...patch } }));
@@ -939,6 +1030,8 @@ export default function App() {
 
   function startSession() {
     setAnswers({});
+    setLockedAnswers(new Set());
+    setCurrentPage(0);
     setQuestionTimings({});
     questionStartTimesRef.current = {};
     setTime(0);
@@ -947,6 +1040,31 @@ export default function App() {
     setShowCelebration(false);
     setLastResult(null);
     setTimeout(() => focusQuestion(0), 0);
+  }
+
+  function lockAnswer(i) {
+    setLockedAnswers(prev => new Set([...prev, i]));
+  }
+
+  function submitCurrentPage() {
+    // Lock all questions on current page (unanswered ones become blank = wrong)
+    const pageStart = currentPage * PAGE_SIZE;
+    setLockedAnswers(prev => {
+      const next = new Set(prev);
+      for (let j = 0; j < PAGE_SIZE; j++) next.add(pageStart + j);
+      return next;
+    });
+  }
+
+  function advancePage() {
+    const totalPages = Math.ceil(QUESTIONS_PER_SHEET / PAGE_SIZE);
+    if (currentPage < totalPages - 1) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      setTimeout(() => focusQuestion(nextPage * PAGE_SIZE), 50);
+    } else {
+      finishSession();
+    }
   }
 
   function finishSession() {
@@ -1000,7 +1118,8 @@ export default function App() {
       { badges, perfectSheets: newPerfectSheets },
       { accuracy, isSpeedPhase, newSpeedPasses, newMasteredCount, newTotalQ, newStreak,
         isBestTime, levelProgress: newLevelProgress, time, masteryTime: currentLevel.masteryTime,
-        currentHour, newConsecutivePerfects, daysSinceLastPractice, newHighAccuracySessions }
+        currentHour, newConsecutivePerfects, daysSinceLastPractice, newHighAccuracySessions,
+        justMasteredLevelId: justMastered ? currentLevelId : null }
     );
 
     // Timings
@@ -1115,7 +1234,7 @@ export default function App() {
               { label:"Levels Mastered", value:`${masteredCount}/${flatLevels.length}`, color:"#34d399" },
               { label:"Progress", value:`${overallPct}%`, color:"#60a5fa" },
               { label:"Streak", value:`${streak} day${streak!==1?"s":""}`, color:"#f472b6" },
-              { label:"Badges", value:badges.length, color:"#fbbf24" },
+              { label:"Badges", value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:"#fbbf24" },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background:"rgba(255,255,255,0.1)", border:"2px solid rgba(255,255,255,0.15)", padding:"10px 12px" }}>
                 <div style={{ fontSize:9, color:"rgba(255,255,255,0.6)", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</div>
@@ -1144,6 +1263,7 @@ export default function App() {
           <>
             <CelebrationOverlay show={showCelebration} onDismiss={() => { setShowCelebration(false); setActiveTab("dashboard"); }}
               encouragement={lastResult?.encouragement} newBadges={lastResult?.newBadges} />
+            <BadgeDetailModal badge={selectedBadge} earned={selectedBadge ? badges.includes(selectedBadge.id) : false} onClose={() => setSelectedBadge(null)} />
 
             {/* Current level info card */}
             <div style={{ ...S.card, borderLeft:`8px solid ${stateColor[levelState]}` }}>
@@ -1205,95 +1325,168 @@ export default function App() {
             </div>
 
             {/* Worksheet */}
-            <div style={S.card}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                  {/* Timer: shown live only in speed phase */}
-                  {isSpeedPhase ? (
-                    <div style={{ background:"#111", color:timerColor, padding:"8px 14px", border:BD, fontFamily:PX, fontSize:15, lineHeight:1.4, minWidth:84, textAlign:"center" }}>
-                      {formatTime(time)}
-                    </div>
-                  ) : (
-                    <div style={{ background:"#f9fafb", color:"#9ca3af", padding:"8px 14px", border:"2px solid #e5e7eb", fontFamily:PX, fontSize:10, lineHeight:1.6 }}>
-                      Focus on accuracy
-                    </div>
-                  )}
-                  {isSpeedPhase && time > 0 && (
-                    <div style={{ fontSize:12, fontWeight:800, color:timerColor }}>
-                      {time <= currentLevel.masteryTime ? `${currentLevel.masteryTime - time}s left` : `${time - currentLevel.masteryTime}s over`}
-                    </div>
-                  )}
-                </div>
-                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                  <button onClick={startSession} className="fun-btn" style={S.btn("#6b7280","#374151")}>Restart</button>
-                  <button onClick={finishSession} className="fun-btn" style={S.btn("#16a34a","#14532d")}>Finish &amp; Check!</button>
-                </div>
-              </div>
+            {(() => {
+              const totalPages = Math.ceil(QUESTIONS_PER_SHEET / PAGE_SIZE);
+              const pageStart = currentPage * PAGE_SIZE;
+              const pageProblems = problems.slice(pageStart, pageStart + PAGE_SIZE);
+              const pageAllLocked = pageProblems.every((_, j) => lockedAnswers.has(pageStart + j));
+              // Count correct among locked questions on this page
+              const pageLocked = pageProblems.filter((_, j) => lockedAnswers.has(pageStart + j)).length;
+              const pageCorrect = pageProblems.filter((p, j) => {
+                const val = answers[pageStart + j] || "";
+                return lockedAnswers.has(pageStart + j) && normalizeAnswer(val) === normalizeAnswer(p.answer);
+              }).length;
 
-              {/* Live accuracy bar */}
-              {hasAny && (
-                <div style={{ marginBottom:12 }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontWeight:700, marginBottom:3, color:"#6b7280" }}>
-                    <span>{score.correct} correct of {score.total}</span>
-                    <span style={{ color: score.accuracy >= ACCURACY_THRESHOLD ? "#16a34a" : score.accuracy >= 80 ? "#f59e0b" : "#ef4444" }}>{score.accuracy}%</span>
-                  </div>
-                  <div style={{ width:"100%", height:12, background:"#e5e7eb", border:"3px solid #111", overflow:"hidden" }}>
-                    <div style={{ width:`${score.accuracy}%`, height:"100%", background: score.accuracy >= ACCURACY_THRESHOLD ? "#22c55e" : score.accuracy >= 80 ? "#f59e0b" : "#ef4444", transition:"width 0.25s" }} />
-                  </div>
-                </div>
-              )}
-
-              {/* Review notice */}
-              {isSpeedPhase && masteredIds.length >= 1 && (
-                <div style={{ marginBottom:10, fontSize:12, color:"#6b7280", fontWeight:700, padding:"6px 10px", background:"#f0f4ff", border:"2px solid #c7d2fe" }}>
-                  ♻️ This worksheet includes {REVIEW_Q_COUNT} review questions from previous levels — interleaved to strengthen your memory.
-                </div>
-              )}
-
-              {/* Question grid */}
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))", gap:9 }}>
-                {problems.map((p, i) => {
-                  const val = answers[i] || "";
-                  const correct = done && normalizeAnswer(val) === normalizeAnswer(p.answer);
-                  const wrong = done && val !== "" && !correct;
-                  const live = !done && val !== "" && normalizeAnswer(val) === normalizeAnswer(p.answer);
-                  return (
-                    <div key={`${currentLevelId}-${i}`} className={correct||live?"correct-card":""} style={{ ...S.qCard(correct,wrong,live), outline: p.isReview ? "2px dashed #c7d2fe" : "none" }}>
-                      {p.isReview && <div style={{ fontSize:7, color:"#818cf8", fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>Review</div>}
-                      <div style={{ fontSize:7, color:"#9ca3af", fontFamily:PX, marginBottom:3, lineHeight:1.6 }}>Q{i+1}</div>
-                      <div style={{ fontSize:19, fontWeight:900, display:"flex", alignItems:"center", gap:4 }}>
-                        <span>{p.a} {p.op} {p.b} =</span>
-                        <input
-                          ref={el => { inputRefs.current[i] = el; }}
-                          value={val}
-                          inputMode="decimal"
-                          onFocus={() => markQuestionStart(i)}
-                          onChange={e => {
-                            const cleaned = e.target.value.replace(/[^0-9./-]/g, "");
-                            setAnswers(prev => ({ ...prev, [i]: cleaned }));
-                            captureQuestionTiming(i, cleaned);
-                            if (normalizeAnswer(cleaned).length >= normalizeAnswer(p.answer).length && cleaned.length > 0 && i < problems.length - 1) {
-                              setTimeout(() => focusQuestion(i + 1), 0);
-                            }
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === "Enter" && i < problems.length - 1) { e.preventDefault(); focusQuestion(i + 1); }
-                            if (e.key === "Backspace" && !val && i > 0) focusQuestion(i - 1);
-                          }}
-                          style={S.inp(live, correct, wrong)}
-                        />
-                      </div>
-                      {(live || correct) && (
-                        <div style={{ position:"absolute", top:4, right:6, animation:"emoji-pop 0.4s cubic-bezier(.34,1.56,.64,1) both" }}>
-                          <StarSVG size={18} color="#f59e0b" />
+              return (
+                <div style={S.card}>
+                  {/* Page header row */}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, marginBottom:12 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+                      {/* Timer: shown live only in speed phase */}
+                      {isSpeedPhase ? (
+                        <div style={{ background:"#111", color:timerColor, padding:"8px 14px", border:BD, fontFamily:PX, fontSize:15, lineHeight:1.4, minWidth:84, textAlign:"center" }}>
+                          {formatTime(time)}
+                        </div>
+                      ) : (
+                        <div style={{ background:"#f9fafb", color:"#9ca3af", padding:"8px 14px", border:"2px solid #e5e7eb", fontFamily:PX, fontSize:10, lineHeight:1.6 }}>
+                          Focus on accuracy
                         </div>
                       )}
-                      {done && <div style={{ marginTop:4, fontSize:11, color:"#6b7280", fontWeight:700 }}>{p.answer}</div>}
+                      {isSpeedPhase && time > 0 && (
+                        <div style={{ fontSize:12, fontWeight:800, color:timerColor }}>
+                          {time <= currentLevel.masteryTime ? `${currentLevel.masteryTime - time}s left` : `${time - currentLevel.masteryTime}s over`}
+                        </div>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                    <button onClick={startSession} className="fun-btn" style={S.btn("#6b7280","#374151")}>Restart</button>
+                  </div>
+
+                  {/* Page progress indicator */}
+                  <div style={{ marginBottom:12 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                      <div style={{ display:"flex", gap:6 }}>
+                        {Array.from({ length: totalPages }, (_, p) => (
+                          <div key={p} style={{ padding:"3px 10px", fontFamily:PX, fontSize:7, lineHeight:1.8,
+                            background: p < currentPage ? "#16a34a" : p === currentPage ? C.purple : "#e5e7eb",
+                            color: p < currentPage ? "#fff" : p === currentPage ? "#ffd700" : "#9ca3af",
+                            border: `2px solid ${p < currentPage ? "#16a34a" : p === currentPage ? C.gold : "#e5e7eb"}` }}>
+                            {p < currentPage ? "✓" : `Page ${p+1}`}
+                          </div>
+                        ))}
+                      </div>
+                      <span style={{ fontSize:12, fontWeight:800, color:"#6b5e9e" }}>
+                        Q{pageStart + 1}–{pageStart + PAGE_SIZE}
+                      </span>
+                    </div>
+                    {/* Progress bar across all pages */}
+                    <div style={{ width:"100%", height:8, background:"#e5e7eb", border:"2px solid #d8d0f0", overflow:"hidden" }}>
+                      <div style={{ width:`${(currentPage / totalPages) * 100}%`, height:"100%", background:C.gold, transition:"width 0.4s" }} />
+                    </div>
+                  </div>
+
+                  {/* Per-page live accuracy (shows after first lock) */}
+                  {pageLocked > 0 && (
+                    <div style={{ marginBottom:12 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontWeight:700, marginBottom:3, color:"#6b7280" }}>
+                        <span>{pageCorrect} correct of {pageLocked} answered</span>
+                        <span style={{ color: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? "#16a34a" : (pageCorrect/pageLocked)*100 >= 80 ? "#f59e0b" : "#ef4444" }}>
+                          {Math.round((pageCorrect / pageLocked) * 100)}%
+                        </span>
+                      </div>
+                      <div style={{ width:"100%", height:10, background:"#e5e7eb", border:"2px solid #111", overflow:"hidden" }}>
+                        <div style={{ width:`${(pageCorrect/pageLocked)*100}%`, height:"100%",
+                          background: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? "#22c55e" : (pageCorrect/pageLocked)*100 >= 80 ? "#f59e0b" : "#ef4444",
+                          transition:"width 0.25s" }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Review notice */}
+                  {isSpeedPhase && masteredIds.length >= 1 && pageProblems.some(p => p.isReview) && (
+                    <div style={{ marginBottom:10, fontSize:12, color:"#6b7280", fontWeight:700, padding:"6px 10px", background:"#f0f4ff", border:"2px solid #c7d2fe" }}>
+                      ♻️ Includes review questions from previous levels.
+                    </div>
+                  )}
+
+                  {/* Question grid — current page only */}
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))", gap:9 }}>
+                    {pageProblems.map((p, j) => {
+                      const i = pageStart + j;
+                      const val = answers[i] || "";
+                      const locked = lockedAnswers.has(i) || done;
+                      const correct = locked && normalizeAnswer(val) === normalizeAnswer(p.answer);
+                      const wrong = locked && !correct;
+                      const live = !locked && val !== "" && normalizeAnswer(val) === normalizeAnswer(p.answer);
+                      return (
+                        <div key={`${currentLevelId}-${i}`} className={correct||live?"correct-card":""} style={{ ...S.qCard(correct,wrong,live), outline: p.isReview ? "2px dashed #c7d2fe" : "none" }}>
+                          {p.isReview && <div style={{ fontSize:7, color:"#818cf8", fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>Review</div>}
+                          <div style={{ fontSize:7, color:"#9ca3af", fontFamily:PX, marginBottom:3, lineHeight:1.6 }}>Q{i+1}</div>
+                          <div style={{ fontSize:19, fontWeight:900, display:"flex", alignItems:"center", gap:4 }}>
+                            <span>{p.a} {p.op} {p.b} =</span>
+                            <input
+                              ref={el => { inputRefs.current[i] = el; }}
+                              value={val}
+                              inputMode="decimal"
+                              disabled={locked}
+                              onFocus={() => markQuestionStart(i)}
+                              onChange={e => {
+                                if (locked) return;
+                                const cleaned = e.target.value.replace(/[^0-9./-]/g, "");
+                                setAnswers(prev => ({ ...prev, [i]: cleaned }));
+                                captureQuestionTiming(i, cleaned);
+                                // Auto-advance + lock when answer is long enough
+                                if (normalizeAnswer(cleaned).length >= normalizeAnswer(p.answer).length && cleaned.length > 0) {
+                                  lockAnswer(i);
+                                  const pageEnd = pageStart + PAGE_SIZE - 1;
+                                  if (i < pageEnd) setTimeout(() => focusQuestion(i + 1), 0);
+                                }
+                              }}
+                              onKeyDown={e => {
+                                if (locked) return;
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  if (val !== "") lockAnswer(i);
+                                  const pageEnd = pageStart + PAGE_SIZE - 1;
+                                  if (i < pageEnd) focusQuestion(i + 1);
+                                }
+                                if (e.key === "Backspace" && !val && i > pageStart) focusQuestion(i - 1);
+                              }}
+                              style={{ ...S.inp(live, correct, wrong), opacity: locked ? 0.85 : 1 }}
+                            />
+                          </div>
+                          {locked && correct && (
+                            <div style={{ position:"absolute", top:4, right:6, animation:"emoji-pop 0.4s cubic-bezier(.34,1.56,.64,1) both" }}>
+                              <StarSVG size={18} color="#f59e0b" />
+                            </div>
+                          )}
+                          {locked && wrong && val === "" && (
+                            <div style={{ position:"absolute", top:4, right:6, fontSize:14 }}>—</div>
+                          )}
+                          {locked && <div style={{ marginTop:4, fontSize:11, color: correct?"#16a34a":"#ef4444", fontWeight:700 }}>{correct ? "✓" : `✗ ${p.answer}`}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Page action button */}
+                  <div style={{ marginTop:14, display:"flex", gap:10, justifyContent:"flex-end" }}>
+                    {!pageAllLocked ? (
+                      <button onClick={submitCurrentPage} className="fun-btn" style={S.btn("#4c2f9e", C.shadow)}>
+                        Submit Page {currentPage + 1}
+                      </button>
+                    ) : currentPage < totalPages - 1 ? (
+                      <button onClick={advancePage} className="fun-btn" style={S.btn("#16a34a","#14532d")}>
+                        Next Page →
+                      </button>
+                    ) : (
+                      <button onClick={finishSession} className="fun-btn" style={S.btn("#16a34a","#14532d")}>
+                        Complete Quest! ⭐
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Results panel */}
             {done && lastResult && (
@@ -1399,6 +1592,16 @@ export default function App() {
                         {state === LS.ACCURACY && prog.bestAccuracy > 0 && (
                           <div style={{ marginTop:4, fontSize:11, fontWeight:700, color:"#3b82f6" }}>Best accuracy: {prog.bestAccuracy}%</div>
                         )}
+                        {isMastered && (() => {
+                          const lb = LEVEL_BADGE_DEFS.find(b => b.levelId === level.id);
+                          return lb ? (
+                            <div style={{ marginTop:8, display:"flex", alignItems:"center", gap:6, padding:"4px 8px",
+                              background:`${section.color}22`, border:`2px solid ${section.color}44` }}>
+                              <BadgeImg src={lb.image} color={section.color} earned size={20} />
+                              <span style={{ fontSize:10, fontWeight:800, color:section.color }}>{lb.label}</span>
+                            </div>
+                          ) : null;
+                        })()}
                       </button>
                     );
                   })}
@@ -1409,46 +1612,109 @@ export default function App() {
         )}
 
         {/* ═══════════════ BADGES ═══════════════ */}
-        {activeTab === "badges" && (
-          <div style={S.card}>
-            <div style={{ ...S.h(12), marginBottom:4 }}>Badges</div>
-            <p style={{ ...S.sub, marginBottom:20 }}>Earn badges by practising consistently and mastering levels. {badges.length}/{BADGE_DEFS.length} earned.</p>
-            {[
-              { tier:1, label:"Common",    color:"#6b7280" },
-              { tier:2, label:"Uncommon",  color:"#22c55e" },
-              { tier:3, label:"Rare",      color:"#3b82f6" },
-              { tier:4, label:"Epic",      color:"#a855f7" },
-              { tier:5, label:"Legendary", color:"#f59e0b" },
-            ].map(({ tier, label, color }) => (
-              <div key={tier} style={{ marginBottom:24 }}>
-                <div style={{ fontFamily:PX, fontSize:8, color, lineHeight:1.8, marginBottom:10,
-                  borderBottom:`2px solid ${color}44`, paddingBottom:6 }}>✦ {label}</div>
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:10 }}>
-                  {BADGE_DEFS.filter(b => b.tier === tier).map(b => {
-                    const earned = badges.includes(b.id);
-                    return (
-                      <div key={b.id} style={{ border:`3px solid ${earned?b.color:"#e5e7eb"}`, padding:12,
-                        background:earned?`${b.color}11`:"#f9fafb", boxShadow:earned?`4px 4px 0 ${b.color}44`:"none",
-                        display:"flex", gap:10, alignItems:"flex-start" }}>
-                        <div style={{ width:44, height:44, flexShrink:0, display:"flex", alignItems:"center",
-                          justifyContent:"center", background:earned?`${b.color}22`:"#f0f0f0",
-                          border:`2px solid ${earned?b.color:"#e5e7eb"}` }}>
-                          {b.image && <img src={b.image} alt={b.label}
-                            style={{ imageRendering:"pixelated", width:36, height:36, objectFit:"contain", opacity:earned?1:0.25 }} />}
-                        </div>
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontWeight:900, fontSize:12, color:earned?b.color:"#9ca3af", lineHeight:1.3 }}>{b.label}</div>
-                          <div style={{ fontSize:11, color:"#6b7280", fontWeight:700, marginTop:3, lineHeight:1.4 }}>{b.desc}</div>
-                          {earned && <div style={{ marginTop:5, fontFamily:PX, fontSize:6, color:b.color, lineHeight:1.8 }}>✓ EARNED</div>}
-                        </div>
-                      </div>
-                    );
-                  })}
+        {activeTab === "badges" && (() => {
+          const earnedCount = badges.length;
+          const totalCount = ALL_BADGE_DEFS.length;
+          return (
+            <>
+              <BadgeDetailModal badge={selectedBadge} earned={selectedBadge ? badges.includes(selectedBadge.id) : false} onClose={() => setSelectedBadge(null)} />
+
+              {/* Summary card */}
+              <div style={{ ...S.card, borderLeft:`8px solid ${C.gold}`, display:"flex", gap:20, alignItems:"center", flexWrap:"wrap" }}>
+                <div style={{ flex:1 }}>
+                  <div style={S.h(12)}>Badge Collection</div>
+                  <p style={{ ...S.sub, marginTop:4 }}>{earnedCount} of {totalCount} badges earned — tap any badge to see details.</p>
+                </div>
+                <div style={{ textAlign:"right" }}>
+                  <div style={{ fontSize:28, fontWeight:900, color:C.gold }}>{earnedCount}</div>
+                  <div style={{ fontSize:12, color:"#6b5e9e", fontWeight:700 }}>/ {totalCount}</div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+
+              {/* ── Journey Badges section ── */}
+              <div style={{ ...S.card }}>
+                <div style={{ fontFamily:PX, fontSize:9, color:C.purple, lineHeight:1.8, marginBottom:16,
+                  borderBottom:`3px solid ${C.gold}`, paddingBottom:8 }}>
+                  ⚔ Journey Badges — one for each level mastered
+                </div>
+                {CURRICULUM.map(section => {
+                  const sectionLevelBadges = LEVEL_BADGE_DEFS.filter(b => b.sectionId === section.id);
+                  const sectionEarned = sectionLevelBadges.filter(b => badges.includes(b.id)).length;
+                  return (
+                    <div key={section.id} style={{ marginBottom:20 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                        <div style={{ width:4, height:20, background:section.color }} />
+                        <span style={{ fontWeight:900, fontSize:13, color:C.purple }}>{section.name}</span>
+                        <span style={{ fontSize:11, color:"#6b5e9e", fontWeight:700 }}>{sectionEarned}/{sectionLevelBadges.length}</span>
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(80px,1fr))", gap:8 }}>
+                        {sectionLevelBadges.map(b => {
+                          const earned = badges.includes(b.id);
+                          return (
+                            <button key={b.id} onClick={() => setSelectedBadge(b)}
+                              style={{ border:`3px solid ${earned ? b.color : "#e5e7eb"}`, padding:"10px 6px",
+                                background: earned ? `${b.color}15` : "#f9fafb",
+                                boxShadow: earned ? `3px 3px 0 ${b.color}55` : "none",
+                                cursor:"pointer", textAlign:"center", transition:"transform 0.1s" }}
+                              className="fun-btn">
+                              <BadgeImg src={b.image} color={b.color} earned={earned} size={44} />
+                              <div style={{ fontSize:9, fontWeight:900, color: earned ? b.color : "#9ca3af",
+                                marginTop:5, lineHeight:1.3, wordBreak:"break-word" }}>{b.label}</div>
+                              {earned && <div style={{ fontFamily:PX, fontSize:5, color:b.color, marginTop:3 }}>✓</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ── Achievement Badges section ── */}
+              <div style={{ ...S.card }}>
+                <div style={{ fontFamily:PX, fontSize:9, color:C.purple, lineHeight:1.8, marginBottom:16,
+                  borderBottom:`3px solid ${C.gold}`, paddingBottom:8 }}>
+                  ✦ Achievement Badges
+                </div>
+                {[1,2,3,4,5].map(tier => {
+                  const tierInfo = TIER_INFO[tier];
+                  const tierBadges = BADGE_DEFS.filter(b => b.tier === tier);
+                  const tierEarned = tierBadges.filter(b => badges.includes(b.id)).length;
+                  return (
+                    <div key={tier} style={{ marginBottom:24 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10,
+                        borderBottom:`2px solid ${tierInfo.color}44`, paddingBottom:6 }}>
+                        <div style={{ fontFamily:PX, fontSize:7, color:tierInfo.color, lineHeight:1.8 }}>✦ {tierInfo.label}</div>
+                        <div style={{ fontSize:11, color:"#6b5e9e", fontWeight:700 }}>{tierEarned}/{tierBadges.length}</div>
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))", gap:10 }}>
+                        {tierBadges.map(b => {
+                          const earned = badges.includes(b.id);
+                          return (
+                            <button key={b.id} onClick={() => setSelectedBadge(b)}
+                              style={{ border:`3px solid ${earned ? b.color : "#e5e7eb"}`, padding:12,
+                                background: earned ? `${b.color}11` : "#f9fafb",
+                                boxShadow: earned ? `4px 4px 0 ${b.color}44` : "none",
+                                display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer",
+                                textAlign:"left" }}
+                              className="fun-btn">
+                              <BadgeImg src={b.image} color={b.color} earned={earned} size={44} />
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontWeight:900, fontSize:12, color: earned ? b.color : "#9ca3af", lineHeight:1.3 }}>{b.label}</div>
+                                <div style={{ fontSize:10, color:"#6b7280", fontWeight:700, marginTop:3, lineHeight:1.4 }}>{b.desc}</div>
+                                {earned && <div style={{ marginTop:4, fontFamily:PX, fontSize:5, color:b.color, lineHeight:1.8 }}>✓ EARNED</div>}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
 
         {/* ═══════════════ HISTORY ═══════════════ */}
         {activeTab === "history" && (
