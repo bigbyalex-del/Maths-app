@@ -34,13 +34,6 @@ function lastUsedLabel(profile) {
   return timeStr ? `${relative} · ${dateStr} at ${timeStr}` : `${relative} · ${dateStr}`;
 }
 
-function daysSince(dateStr) {
-  if (!dateStr) return "Never";
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
-  return `${diff}d ago`;
-}
 
 function maskPin(pin) {
   if (!pin || pin.length < 2) return "••••";
