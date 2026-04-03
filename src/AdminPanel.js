@@ -15,6 +15,25 @@ function masteredCount(levelProgress) {
   return Object.values(levelProgress).filter(p => p.state === "mastered").length;
 }
 
+function lastUsedLabel(profile) {
+  // Use history[0].id (Unix ms timestamp) for precise time, fall back to lastCompletedDate
+  const ts = profile.history?.[0]?.id ? parseInt(profile.history[0].id, 10) : null;
+  const date = ts ? new Date(ts) : (profile.lastCompletedDate ? new Date(profile.lastCompletedDate) : null);
+  if (!date || isNaN(date.getTime())) return "Never";
+
+  const now = new Date();
+  const dayDiff = Math.floor((now - date) / 86400000);
+  const dateStr = date.toLocaleDateString("en-GB", { day:"numeric", month:"short" });
+  const timeStr = ts ? date.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" }) : null;
+
+  let relative;
+  if (dayDiff === 0) relative = "Today";
+  else if (dayDiff === 1) relative = "Yesterday";
+  else relative = `${dayDiff}d ago`;
+
+  return timeStr ? `${relative} · ${dateStr} at ${timeStr}` : `${relative} · ${dateStr}`;
+}
+
 function daysSince(dateStr) {
   if (!dateStr) return "Never";
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
@@ -53,7 +72,7 @@ function AccountModal({ profile, onClose, onDelete, onResetProgress }) {
       <div style={{ background:"#0d0d1a", border:"4px solid #4f46e5", boxShadow:"8px 8px 0 #000",
         padding:28, maxWidth:500, width:"100%", fontFamily:"'Nunito',sans-serif" }}>
         <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:4 }}>{profile.name}</div>
-        <div style={{ fontSize:11, color:"#64748b", marginBottom:16 }}>PIN: {maskPin(profile.id)} · Last active: {daysSince(profile.lastCompletedDate)}</div>
+        <div style={{ fontSize:11, color:"#64748b", marginBottom:16 }}>PIN: {maskPin(profile.id)} · Last active: {lastUsedLabel(profile)}</div>
 
         <div style={{ display:"flex", flexWrap:"wrap", marginBottom:16 }}>
           <Pill label="Questions" value={profile.totalQuestions ?? 0} color="#22c55e" />
@@ -379,8 +398,8 @@ export default function AdminPanel() {
                   </div>
 
                   {/* Last active */}
-                  <div style={{ fontSize:11, fontWeight:700, color:"#475569", flexShrink:0, textAlign:"right" }}>
-                    {daysSince(profile.lastCompletedDate)}
+                  <div style={{ fontSize:11, fontWeight:700, color:"#475569", flexShrink:0, textAlign:"right", maxWidth:160 }}>
+                    {lastUsedLabel(profile)}
                   </div>
                 </div>
               );
