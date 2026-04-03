@@ -2,12 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import AdminPanel from './AdminPanel';
 import reportWebVitals from './reportWebVitals';
+
+const isAdmin = new URLSearchParams(window.location.search).has("admin");
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    {isAdmin ? <AdminPanel /> : <App />}
   </React.StrictMode>
 );
 
