@@ -387,11 +387,9 @@ function buildPlacementProgress(placedLevelId) {
 // ── LandingPage ───────────────────────────────────────────────────────────────
 function LandingPage({ onStart, onReturn }) {
   const PX = "'Press Start 2P', monospace";
-  const NU = "'Nunito', sans-serif";
   const bg = "#0d0a1a";
   const bgAlt = "#120e24";
   const gold = "#fbbf24";
-  const purple = "#7c3aed";
   const purpleLight = "#a78bfa";
   const text = "#e2d4ff";
   const textSub = "#9b80d4";
@@ -439,7 +437,7 @@ function LandingPage({ onStart, onReturn }) {
   ];
 
   return (
-    <div style={{ background:bg, color:text, fontFamily:NU, overflowX:"hidden" }}>
+    <div style={{ background:bg, color:text, fontFamily:"'Nunito', sans-serif", overflowX:"hidden" }}>
 
       {/* ── HERO ── */}
       <div style={{ position:"relative", minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center",
