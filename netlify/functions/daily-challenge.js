@@ -5,14 +5,16 @@ exports.handler = async (event) => {
   if (!apiKey) return { statusCode: 500, body: "No API key" };
 
   const prompt = `A child is practising "${levelTitle}" in the "${sectionName}" section (skill: "${skill}").
-Generate ONE challenge maths question that is slightly harder than their current level.
-Return ONLY a JSON object with no explanation, like:
-{"a": 7, "b": 8, "op": "×", "answer": "56", "flavour": "Can you crack today's mystery?"}
+Generate ONE daily bonus maths question that is slightly harder than their current level.
+Return ONLY a JSON object with no explanation:
+{"a": 14, "b": 9, "op": "+", "answer": "23", "flavour": "Beat today's bonus challenge!"}
 Rules:
 - op must be one of: +, -, ×, ÷
-- answer must be a whole number as a string
-- flavour is a short fun sentence (max 8 words) to introduce the challenge
-- the question should be achievable but challenging`;
+- answer must be a positive whole number as a string
+- flavour is a short motivating sentence (max 8 words, no mention of "missing number")
+- flavour examples: "Can you crack today's challenge?", "Beat the daily quest!", "Today's bonus — go for it!", "Show what you know today!"
+- the question must be straightforward (a op b = answer), NOT a fill-in-the-middle format
+- the question should be achievable but slightly harder than their current level`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -25,6 +27,6 @@ Rules:
     const json = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || "{}");
     return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
   } catch {
-    return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ a: 7, b: 8, op: "×", answer: "56", flavour: "Can you crack today's challenge?" }) };
+    return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ a: 14, b: 9, op: "+", answer: "23", flavour: "Beat today's bonus challenge!" }) };
   }
 };

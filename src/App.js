@@ -1460,27 +1460,28 @@ export default function App() {
                       filter:"drop-shadow(0 0 16px rgba(251,191,36,0.6)) drop-shadow(0 0 6px rgba(196,181,253,0.4))" }} />
                 </div>
                 <div>
-                  {/* Main title — two lines */}
-                  <div style={{ fontFamily:PX, lineHeight:1.5, margin:0 }}>
-                    <div style={{ fontSize:11, color:C.textSub, letterSpacing:"0.14em", marginBottom:2 }}>
-                      ⚔ &nbsp;GET
+                  {/* Main title */}
+                  <div style={{ fontFamily:PX, margin:0 }}>
+                    <div style={{ fontSize:9, color:C.gold, letterSpacing:"0.18em", marginBottom:4, opacity:0.7 }}>
+                      ★ GET ★
                     </div>
-                    <div>
-                      <span style={{ fontSize:18, color:C.gold, letterSpacing:"0.04em" }} className="title-glow flicker">
-                        MATHS&nbsp;
+                    <div style={{ lineHeight:1.2 }}>
+                      <span style={{ fontSize:20, color:C.gold, letterSpacing:"0.05em", display:"block" }} className="title-glow flicker">
+                        MATHS
                       </span>
-                      <span style={{ fontSize:18, color:C.purple, textShadow:`0 0 24px ${C.purple}88`, letterSpacing:"0.04em" }}>
+                      <span style={{ fontSize:20, color:C.purple, letterSpacing:"0.05em", display:"block",
+                        textShadow:`0 0 20px ${C.purple}66` }}>
                         MASTERY
                       </span>
                     </div>
                   </div>
                   {/* Welcome sub-line */}
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:7 }}>
-                    <img src="/ui/divider-gold.png" alt="" style={{ imageRendering:"pixelated", height:8, width:40, objectFit:"cover", opacity:0.7 }} />
-                    <span style={{ fontSize:10, color:C.textSub, fontWeight:700, letterSpacing:"0.06em" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:8 }}>
+                    <div style={{ height:1, width:28, background:`linear-gradient(90deg, transparent, ${C.gold})` }} />
+                    <span style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>
                       Welcome back, <span style={{ color:C.purple }}>{profile.name}</span>
                     </span>
-                    <img src="/ui/divider-gold.png" alt="" style={{ imageRendering:"pixelated", height:8, width:40, objectFit:"cover", opacity:0.7, transform:"scaleX(-1)" }} />
+                    <div style={{ height:1, width:28, background:`linear-gradient(90deg, ${C.gold}, transparent)` }} />
                   </div>
                 </div>
               </div>
@@ -1522,7 +1523,7 @@ export default function App() {
 
         {/* ── Tabs ── */}
         <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
-          {[["dashboard","⚔️ Quest"],["journey","🗺️ Journey"],["badges","🏆 Trophies"],["history","📜 History"],["settings","⚙️ Keep"]].map(([id,label]) => (
+          {[["dashboard","⚔️ Quest"],["journey","🗺️ Journey"],["badges","🏆 Trophies"],["history","📜 History"],["settings","⚙️ Settings"]].map(([id,label]) => (
             <button key={id} onClick={() => setActiveTab(id)} className="fun-btn" style={S.tab(activeTab===id)}>{label}</button>
           ))}
         </div>
@@ -1540,8 +1541,8 @@ export default function App() {
               <div style={{ display:"flex", justifyContent:"space-between", gap:12, alignItems:"center", padding:"14px 16px", cursor:"pointer" }}
                 onClick={() => setShowLevelDetails(v => !v)}>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:9, color:currentLevel.sectionColor, fontWeight:900, fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>{currentLevel.sectionName}</div>
-                  <div style={{ fontFamily:PX, fontSize:13, color:C.gold, lineHeight:1.6, margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{currentLevel.title}</div>
+                  <div style={{ fontSize:8, color:C.textDim, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:3 }}>{currentLevel.sectionName}</div>
+                  <div style={{ fontFamily:PX, fontSize:12, color:C.gold, lineHeight:1.6, margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{currentLevel.title}</div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
                   <span style={{ display:"inline-block", padding:"3px 10px", background:stateColor[levelState]+"22", border:`2px solid ${stateColor[levelState]}`, fontFamily:PX, fontSize:7, lineHeight:1.8, color:stateColor[levelState] }}>
@@ -1614,70 +1615,94 @@ export default function App() {
               return (
                 <div style={S.card}>
 
-                  {/* ── Game HUD bar ── */}
-                  <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap", marginBottom:14,
-                    padding:"10px 14px", background:C.bgAlt, border:`2px solid ${C.border}`,
-                    borderBottom:`3px solid ${C.gold}30` }}>
+                  {/* ── Game HUD ── */}
+                  <div style={{ marginBottom:14 }}>
 
-                    {/* Mascot */}
-                    <img src="/maths-master.png" alt=""
-                      className={`mascot-${mascotState}`}
-                      style={{ imageRendering:"pixelated", width:40, height:40, objectFit:"contain",
-                        filter:`drop-shadow(0 0 6px ${mascotState==="celebrate"?C.gold:C.purple}44)` }} />
+                    {/* Row 1: Mascot + Coins + Timer + Pages + Restart */}
+                    <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
+                      padding:"10px 14px", background:C.bgAlt, border:`2px solid ${C.border}`,
+                      borderBottom:`2px solid ${C.border}60` }}>
 
-                    {/* Coin counter */}
-                    <div style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px",
-                      background:"#1a1035", border:`2px solid ${C.gold}`, minWidth:70 }}>
-                      <span style={{ fontSize:16 }}>🪙</span>
-                      <span style={{ fontFamily:PX, fontSize:11, color:C.gold, lineHeight:1.4 }}>{sessionCoins}</span>
+                      {/* Mascot — bigger, outside coin box */}
+                      <img src="/maths-master.png" alt=""
+                        className={`mascot-${mascotState}`}
+                        style={{ imageRendering:"pixelated", width:56, height:56, objectFit:"contain", flexShrink:0,
+                          filter:`drop-shadow(0 0 8px ${mascotState==="celebrate"?C.gold+"99":C.purple+"55"})` }} />
+
+                      {/* Coin counter */}
+                      <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px",
+                        background:C.bgCard, border:`2px solid ${C.gold}`, minWidth:80 }}>
+                        <span style={{ fontSize:18, lineHeight:1 }}>🪙</span>
+                        <div>
+                          <div style={{ fontFamily:PX, fontSize:13, color:C.gold, lineHeight:1.2 }}>{sessionCoins}</div>
+                          <div style={{ fontSize:9, color:C.textDim, fontWeight:700 }}>coins</div>
+                        </div>
+                      </div>
+
+                      {/* Timer */}
+                      {isSpeedPhase ? (
+                        <div style={{ background:C.bgCard, color:timerColor, padding:"6px 14px", border:`3px solid ${timerColor}60`,
+                          fontFamily:PX, fontSize:14, lineHeight:1.3, minWidth:80, textAlign:"center",
+                          boxShadow:`0 0 12px ${timerColor}30` }}>
+                          {formatTime(time)}
+                          {time > 0 && <div style={{ fontSize:8, color:timerColor, marginTop:2 }}>
+                            {time <= currentLevel.masteryTime ? `${currentLevel.masteryTime-time}s left` : `${time-currentLevel.masteryTime}s over`}
+                          </div>}
+                        </div>
+                      ) : (
+                        <div style={{ padding:"6px 12px", background:C.bgCard, border:`2px solid ${C.border}`,
+                          fontFamily:PX, fontSize:8, color:C.textDim, lineHeight:1.8 }}>
+                          Accuracy<br/>Mode
+                        </div>
+                      )}
+
+                      {/* Spacer */}
+                      <div style={{ flex:1 }} />
+
+                      {/* Page tabs */}
+                      <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+                        <span style={{ fontSize:10, color:C.textDim, fontWeight:700, marginRight:2 }}>Page</span>
+                        {Array.from({ length: totalPages }, (_, pg) => (
+                          <div key={pg} style={{ width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center",
+                            fontFamily:PX, fontSize:8, lineHeight:1,
+                            background: pg < currentPage ? C.greenBg : pg === currentPage ? C.bgCard : C.bgAlt,
+                            color: pg < currentPage ? C.green : pg === currentPage ? C.gold : C.textDim,
+                            border: `2px solid ${pg < currentPage ? C.green : pg === currentPage ? C.gold : C.border}` }}>
+                            {pg < currentPage ? "✓" : pg+1}
+                          </div>
+                        ))}
+                        <button onClick={startSession} className="fun-btn"
+                          style={{ width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center",
+                            border:`2px solid ${C.border}`, cursor:"pointer",
+                            fontFamily:PX, fontSize:12, background:C.bgAlt, color:C.textDim, boxShadow:SD, padding:0 }}>↺</button>
+                      </div>
                     </div>
 
-                    {/* Timer */}
-                    {isSpeedPhase ? (
-                      <div style={{ background:C.bgCard, color:timerColor, padding:"5px 12px", border:`3px solid ${timerColor}60`,
-                        fontFamily:PX, fontSize:13, lineHeight:1.4, minWidth:72, textAlign:"center",
-                        boxShadow:`0 0 10px ${timerColor}30` }}>
-                        {formatTime(time)}
-                        {time > 0 && <div style={{ fontSize:7, color:timerColor, marginTop:1 }}>
-                          {time <= currentLevel.masteryTime ? `${currentLevel.masteryTime-time}s left` : `${time-currentLevel.masteryTime}s over`}
-                        </div>}
-                      </div>
-                    ) : (
-                      <div style={{ padding:"5px 12px", background:C.bgCard, border:`2px solid ${C.border}`,
-                        fontFamily:PX, fontSize:8, color:C.textDim, lineHeight:1.6 }}>
-                        Accuracy Mode
-                      </div>
-                    )}
-
-                    {/* Quest goal progress */}
-                    <div style={{ flex:1, minWidth:120 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, fontWeight:800,
-                        color:C.textSub, marginBottom:3 }}>
-                        <span>⚔ Quest: {pageCorrect}/{questTarget} correct</span>
-                        <span style={{ color: pageCorrect >= questTarget ? C.green : C.textDim }}>
-                          {pageCorrect >= questTarget ? "✓ Goal reached!" : `${questTarget - pageCorrect} to go`}
+                    {/* Row 2: Quest progress bar */}
+                    <div style={{ padding:"8px 14px", background:`${C.bgAlt}cc`, border:`2px solid ${C.border}`,
+                      borderTop:"none" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+                        <span style={{ fontSize:11, fontWeight:800, color:C.textSub }}>
+                          ⚔ Quest — get <span style={{ color:C.gold }}>{questTarget}</span> correct to complete
+                        </span>
+                        <span style={{ fontFamily:PX, fontSize:9,
+                          color: pageCorrect >= questTarget ? C.green : pageCorrect > 0 ? C.gold : C.textDim }}>
+                          {pageCorrect >= questTarget ? "✓ Done!" : `${pageCorrect}/${questTarget}`}
                         </span>
                       </div>
-                      <div style={{ height:6, background:C.bgFlat, border:`1px solid ${C.border}`, overflow:"hidden" }}>
-                        <div style={{ width:`${Math.min((pageCorrect/questTarget)*100, 100)}%`, height:"100%",
-                          background: pageCorrect >= questTarget ? C.green : C.gold,
-                          transition:"width 0.3s ease", boxShadow: pageCorrect >= questTarget ? `0 0 8px ${C.green}` : "none" }} />
+                      <div style={{ height:14, background:C.bgFlat, border:`2px solid ${C.border}`, overflow:"hidden", position:"relative" }}>
+                        <div style={{ width:`${Math.min((pageCorrect/questTarget)*100,100)}%`, height:"100%",
+                          background: pageCorrect >= questTarget
+                            ? `linear-gradient(90deg, ${C.green}, #6ee7b7)`
+                            : `linear-gradient(90deg, ${C.gold}, #fde68a)`,
+                          transition:"width 0.4s ease",
+                          boxShadow: pageCorrect >= questTarget ? `0 0 10px ${C.green}88` : `0 0 6px ${C.gold}66` }} />
+                        {/* Tick marks */}
+                        {Array.from({length: questTarget}, (_,t) => (
+                          <div key={t} style={{ position:"absolute", left:`${((t+1)/questTarget)*100}%`,
+                            top:0, bottom:0, width:1, background:`${C.border}88` }} />
+                        ))}
                       </div>
-                    </div>
-
-                    {/* Page tabs + restart */}
-                    <div style={{ display:"flex", gap:5, alignItems:"center", marginLeft:"auto" }}>
-                      {Array.from({ length: totalPages }, (_, pg) => (
-                        <div key={pg} style={{ padding:"3px 8px", fontFamily:PX, fontSize:7, lineHeight:1.8,
-                          background: pg < currentPage ? C.greenBg : pg === currentPage ? C.bgCard : C.bgAlt,
-                          color: pg < currentPage ? C.green : pg === currentPage ? C.gold : C.textDim,
-                          border: `2px solid ${pg < currentPage ? C.green : pg === currentPage ? C.gold : C.border}` }}>
-                          {pg < currentPage ? "✓" : pg+1}
-                        </div>
-                      ))}
-                      <button onClick={startSession} className="fun-btn"
-                        style={{ border:`2px solid ${C.border}`, padding:"4px 10px", cursor:"pointer",
-                          fontFamily:PX, fontSize:7, lineHeight:1.8, background:C.bgAlt, color:C.textDim, boxShadow:SD }}>↺</button>
                     </div>
                   </div>
 
@@ -1834,23 +1859,40 @@ export default function App() {
 
             {/* Daily challenge card — below worksheet */}
             {dailyChallenge && (
-              <div className={dailyChallenge.completed ? "" : "quest-float"} style={{ ...S.card, borderLeft:`6px solid ${C.gold}`, background: dailyChallenge.completed ? C.greenBg : C.bgCard }}>
-                <div style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:C.gold, marginBottom:4, lineHeight:1.8 }}>⭐ Daily Quest</div>
-                {dailyChallenge.flavour && <div style={{ fontSize:12, color:C.textSub, marginBottom:8, fontStyle:"italic" }}>{dailyChallenge.flavour}</div>}
+              <div className={dailyChallenge.completed ? "" : "quest-float"}
+                style={{ ...S.card, borderLeft:`6px solid ${C.gold}`, background: dailyChallenge.completed ? C.greenBg : C.bgCard }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+                  <span style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:C.gold, lineHeight:1.8 }}>⭐ Daily Quest</span>
+                  {!dailyChallenge.completed && <span style={{ fontSize:11, color:C.textSub, fontStyle:"italic" }}>— {dailyChallenge.flavour}</span>}
+                </div>
                 {dailyChallenge.completed ? (
-                  <div style={{ fontSize:14, fontWeight:900, color:C.green }}>✓ Quest complete! Well done! 🌟</div>
+                  <div style={{ fontSize:16, fontWeight:900, color:C.green }}>✓ Quest complete! Well done! 🌟</div>
                 ) : (
-                  <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
-                    <span style={{ fontSize:20, fontWeight:900, color:C.text }}>{dailyChallenge.a} {dailyChallenge.op} {dailyChallenge.b} = </span>
+                  <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:22, fontWeight:900, color:C.text, fontFamily:PX }}>
+                      {dailyChallenge.a} {dailyChallenge.op} {dailyChallenge.b} =
+                    </span>
                     <input
                       value={dailyAnswer} inputMode="decimal"
                       onChange={e => setDailyAnswer(e.target.value.replace(/[^0-9./-]/g, ""))}
-                      onKeyDown={e => { if (e.key === "Enter" && dailyAnswer !== "") { if (String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); } }}
-                      style={{ width:64, padding:"6px 8px", fontSize:16, fontWeight:900, border:`2px solid ${C.gold}`, background:C.bgFlat, color:C.text, textAlign:"center" }}
+                      onKeyDown={e => { if (e.key === "Enter" && dailyAnswer !== "") {
+                        if (String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge();
+                        else setDailyAnswer("");
+                      }}}
+                      style={{ width:72, height:48, fontSize:22, fontWeight:900,
+                        border:`3px solid ${C.gold}`, background:"#231760", color:C.text,
+                        textAlign:"center", fontFamily:"'Nunito',sans-serif",
+                        boxShadow:`0 0 8px ${C.gold}44` }}
                       placeholder="?"
                     />
-                    <button onClick={() => { if (dailyAnswer !== "" && String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); }}
-                      className="fun-btn" style={S.btn(C.gold, C.goldDim)}>Check</button>
+                    <button
+                      onClick={() => { if (dailyAnswer !== "") {
+                        if (String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge();
+                        else setDailyAnswer("");
+                      }}}
+                      className="fun-btn action-btn-pulse" style={S.btn(C.gold, C.goldDim)}>
+                      Check ⚡
+                    </button>
                   </div>
                 )}
               </div>
