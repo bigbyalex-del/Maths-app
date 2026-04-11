@@ -804,7 +804,7 @@ function BadgeImg({ src, color, earned, size = 44 }) {
   }
   return (
     <div style={{ width:size, height:size, display:"flex", alignItems:"center", justifyContent:"center",
-      background: earned ? `${color}33` : "#f3f4f6", border:`2px solid ${earned ? color : "#e5e7eb"}`,
+      background: earned ? `${color}33` : "#0f0b1e", border:`2px solid ${earned ? color : "#3b2878"}`,
       flexShrink:0 }}>
       <span style={{ fontSize: size * 0.35, opacity: earned ? 1 : 0.25 }}>★</span>
     </div>
@@ -819,12 +819,12 @@ function BadgeDetailModal({ badge, earned, onClose }) {
   return (
     <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:9998, display:"flex", alignItems:"center", justifyContent:"center",
       background:"rgba(0,0,0,0.75)", backdropFilter:"blur(4px)", cursor:"pointer", padding:16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background:"#fff", border:`4px solid ${earned ? badge.color : "#d1d5db"}`,
-        boxShadow:`8px 8px 0 ${earned ? badge.color + "88" : "#111"}`, padding:32, maxWidth:360, width:"100%",
+      <div onClick={e => e.stopPropagation()} style={{ background:"#1a1035", border:`4px solid ${earned ? badge.color : "#3b2878"}`,
+        boxShadow:`8px 8px 0 ${earned ? badge.color + "88" : "#06030f"}`, padding:32, maxWidth:360, width:"100%",
         textAlign:"center", cursor:"default" }}>
         {/* Badge image */}
         <div style={{ width:120, height:120, margin:"0 auto 16px", display:"flex", alignItems:"center", justifyContent:"center",
-          background: earned ? `${badge.color}22` : "#f3f4f6", border:`3px solid ${earned ? badge.color : "#e5e7eb"}` }}>
+          background: earned ? `${badge.color}22` : "#0f0b1e", border:`3px solid ${earned ? badge.color : "#3b2878"}` }}>
           <BadgeImg src={badge.image} color={badge.color} earned={earned} size={96} />
         </div>
         {/* Tier label */}
@@ -833,20 +833,20 @@ function BadgeDetailModal({ badge, earned, onClose }) {
           {tier.label}
         </div>
         {/* Name */}
-        <div style={{ fontFamily:PX, fontSize:12, color: earned ? badge.color : "#9ca3af", lineHeight:1.7, marginBottom:8 }}>
+        <div style={{ fontFamily:PX, fontSize:12, color: earned ? badge.color : "#4a3668", lineHeight:1.7, marginBottom:8 }}>
           {badge.label}
         </div>
         {/* Description */}
-        <div style={{ fontSize:13, color:"#374151", fontWeight:700, lineHeight:1.6, marginBottom:16 }}>{badge.desc}</div>
+        <div style={{ fontSize:13, color:"#e2d4ff", fontWeight:700, lineHeight:1.6, marginBottom:16 }}>{badge.desc}</div>
         {/* Status */}
         {earned ? (
           <div style={{ padding:"8px 16px", background:`${badge.color}22`, border:`2px solid ${badge.color}`,
             fontFamily:PX, fontSize:8, color:badge.color, lineHeight:1.8 }}>✓ EARNED</div>
         ) : (
-          <div style={{ padding:"8px 16px", background:"#f9fafb", border:"2px solid #e5e7eb",
-            fontSize:12, color:"#6b7280", fontWeight:700, fontStyle:"italic" }}>Not yet earned</div>
+          <div style={{ padding:"8px 16px", background:"#0f0b1e", border:"2px solid #3b2878",
+            fontSize:12, color:"#9b80d4", fontWeight:700, fontStyle:"italic" }}>Not yet earned</div>
         )}
-        <div style={{ marginTop:16, fontSize:11, color:"#9ca3af", fontWeight:700 }}>Tap anywhere to close</div>
+        <div style={{ marginTop:16, fontSize:11, color:"#4a3668", fontWeight:700 }}>Tap anywhere to close</div>
       </div>
     </div>
   );
@@ -1370,30 +1370,38 @@ export default function App() {
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const PX = "'Press Start 2P', monospace";
-  // Palette: deep purple + gold to match castle onboarding theme
-  const C = { purple:"#2d1b69", purpleMid:"#4c2f9e", purpleLight:"#f3f0ff", gold:"#c9a227", goldLight:"#fff8e1", border:"#2d1b69", shadow:"#1a0f40" };
+  // Dark fantasy RPG palette
+  const C = {
+    bg:"#0d0a1a", bgCard:"#1a1035", bgFlat:"#130d26", bgAlt:"#0f0b1e",
+    border:"#3b2878", borderHi:"#7c3aed", shadow:"#06030f",
+    text:"#e2d4ff", textSub:"#9b80d4", textDim:"#4a3668",
+    gold:"#fbbf24", goldDim:"#92670f",
+    green:"#34d399", greenBg:"#042819",
+    red:"#f87171", redBg:"#2d0a0a",
+    purple:"#c4b5fd", purpleMid:"#7c3aed",
+  };
   const BD = `4px solid ${C.border}`;
   const SD = `5px 5px 0 ${C.shadow}`;
 
   const S = {
-    page: { minHeight:"100vh", background:C.purpleLight, fontFamily:"'Nunito',sans-serif", color:C.purple, padding:16, boxSizing:"border-box" },
+    page: { minHeight:"100vh", background:C.bg, fontFamily:"'Nunito',sans-serif", color:C.text, padding:16, boxSizing:"border-box" },
     wrap: { maxWidth:1100, margin:"0 auto" },
-    card: { background:"#fff", border:BD, boxShadow:SD, padding:20, marginBottom:16 },
-    flat: { background:C.purpleLight, border:`2px solid #d8d0f0`, padding:14, marginBottom:10 },
-    h: (sz=16) => ({ fontFamily:PX, fontSize:sz, lineHeight:1.7, margin:0, color:C.purple }),
-    sub: { fontSize:13, color:"#6b5e9e", fontWeight:700, lineHeight:1.5, margin:0 },
-    tab: (a) => ({ border:BD, padding:"10px 16px", cursor:"pointer", fontFamily:PX, fontSize:9, lineHeight:1.8, background:a?C.purple:"#fff", color:a?"#ffd700":C.purple, boxShadow:a?`5px 5px 0 ${C.shadow}`:SD }),
-    btn: (bg=C.purple, sh=C.shadow) => ({ border:BD, padding:"12px 20px", background:bg, color:bg===C.gold||bg==="#ffd700"||bg==="#22c55e"?"#111":"#fff", fontFamily:PX, fontSize:10, lineHeight:1.8, boxShadow:`5px 5px 0 ${sh}`, cursor:"pointer" }),
-    qCard: (cor, wr, lv) => ({ background:cor||lv?"#f0fdf4":wr?"#fef2f2":"#fff", border:`4px solid ${cor||lv?"#16a34a":wr?"#dc2626":"#d8d0f0"}`, boxShadow:`3px 3px 0 ${cor||lv?"#16a34a":wr?"#dc2626":"#c4b8e8"}`, padding:"10px 8px", minHeight:86, position:"relative" }),
-    inp: (lv,cor,wr) => ({ width:62, height:44, border:`4px solid ${lv||cor?"#16a34a":wr?"#dc2626":C.purpleMid}`, textAlign:"center", fontSize:19, fontWeight:900, marginLeft:5, background:lv||cor?"#dcfce7":wr?"#fee2e2":C.purpleLight, outline:"none", fontFamily:"'Nunito',sans-serif", color:C.purple, boxShadow:`2px 2px 0 ${lv||cor?"#16a34a":wr?"#dc2626":C.purpleMid}` }),
-    settingInp: { height:44, border:BD, padding:"0 12px", fontSize:15, fontWeight:700, background:"#fff", outline:"none", boxSizing:"border-box", fontFamily:"'Nunito',sans-serif", boxShadow:`3px 3px 0 ${C.shadow}`, color:C.purple },
+    card: { background:C.bgCard, border:BD, boxShadow:SD, padding:20, marginBottom:16 },
+    flat: { background:C.bgFlat, border:`2px solid ${C.border}`, padding:14, marginBottom:10 },
+    h: (sz=16) => ({ fontFamily:PX, fontSize:sz, lineHeight:1.7, margin:0, color:C.gold }),
+    sub: { fontSize:13, color:C.textSub, fontWeight:700, lineHeight:1.5, margin:0 },
+    tab: (a) => ({ border:`4px solid ${a?C.gold:C.border}`, padding:"10px 16px", cursor:"pointer", fontFamily:PX, fontSize:9, lineHeight:1.8, background:a?C.bgCard:C.bgAlt, color:a?C.gold:C.textDim, boxShadow:a?`5px 5px 0 ${C.shadow}`:SD }),
+    btn: (bg=C.purpleMid, sh=C.shadow) => ({ border:BD, padding:"12px 20px", background:bg, color: bg===C.gold||bg==="#fbbf24"?"#111":"#fff", fontFamily:PX, fontSize:10, lineHeight:1.8, boxShadow:`5px 5px 0 ${sh}`, cursor:"pointer" }),
+    qCard: (cor, wr, lv) => ({ background:cor||lv?C.greenBg:wr?C.redBg:C.bgAlt, border:`4px solid ${cor||lv?C.green:wr?C.red:C.border}`, boxShadow:`3px 3px 0 ${cor||lv?"#042819":wr?"#2d0a0a":C.shadow}`, padding:"10px 8px", minHeight:86, position:"relative" }),
+    inp: (lv,cor,wr) => ({ width:62, height:44, border:`4px solid ${lv||cor?C.green:wr?C.red:C.border}`, textAlign:"center", fontSize:19, fontWeight:900, marginLeft:5, background:lv||cor?C.greenBg:wr?C.redBg:C.bgFlat, outline:"none", fontFamily:"'Nunito',sans-serif", color:lv||cor?C.green:wr?C.red:C.text, boxShadow:`2px 2px 0 ${lv||cor?"#042819":wr?"#2d0a0a":C.shadow}` }),
+    settingInp: { height:44, border:BD, padding:"0 12px", fontSize:15, fontWeight:700, background:C.bgFlat, outline:"none", boxSizing:"border-box", fontFamily:"'Nunito',sans-serif", boxShadow:`3px 3px 0 ${C.shadow}`, color:C.text },
   };
 
   // Timer color logic (only shown in speed phase)
-  const timerColor = time === 0 ? "#6b5e9e" : time <= currentLevel.masteryTime ? "#16a34a" : time <= currentLevel.masteryTime * 1.25 ? "#f59e0b" : "#ef4444";
+  const timerColor = time === 0 ? C.textDim : time <= currentLevel.masteryTime ? C.green : time <= currentLevel.masteryTime * 1.25 ? C.gold : C.red;
 
-  const stateLabel = { [LS.LOCKED]:"Locked", [LS.ACCURACY]:"Accuracy Phase", [LS.SPEED]:"Speed Phase", [LS.MASTERED]:"Mastered" };
-  const stateColor = { [LS.LOCKED]:"#9ca3af", [LS.ACCURACY]:"#4c2f9e", [LS.SPEED]:"#c9a227", [LS.MASTERED]:"#16a34a" };
+  const stateLabel = { [LS.LOCKED]:"🔒 Locked", [LS.ACCURACY]:"⚡ Accuracy Phase", [LS.SPEED]:"⚔️ Speed Phase", [LS.MASTERED]:"✨ Mastered" };
+  const stateColor = { [LS.LOCKED]:C.textDim, [LS.ACCURACY]:C.purple, [LS.SPEED]:C.gold, [LS.MASTERED]:C.green };
 
   // ── Phase routing ────────────────────────────────────────────────────────────
   if (appPhase === PHASE.WELCOME) return <WelcomeScreen onNew={() => setAppPhase(PHASE.SIGNUP)} onReturn={() => setAppPhase(PHASE.PIN_ENTRY)} />;
@@ -1410,29 +1418,29 @@ export default function App() {
       <div style={S.wrap}>
 
         {/* ── Header ── */}
-        <div style={{ ...S.card, background:C.purple, borderTop:`4px solid ${C.gold}`, marginBottom:14 }}>
+        <div style={{ ...S.card, background:"linear-gradient(150deg, #1e1350 0%, #0f0a1e 100%)", borderTop:`4px solid ${C.gold}`, marginBottom:14 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:16, flexWrap:"wrap" }}>
             <div>
-              <h1 style={{ ...S.h(17), color:"#ffd700" }}>Get Maths Mastery</h1>
-              <p style={{ color:"#c7d2fe", fontSize:13, fontWeight:700, marginTop:5 }}>
-                Welcome back, {profile.name}! Accuracy first, then speed.
+              <h1 style={{ ...S.h(17), color:C.gold }} className="flicker">⚔ Get Maths Mastery</h1>
+              <p style={{ color:C.textSub, fontSize:13, fontWeight:700, marginTop:5 }}>
+                Welcome back, <span style={{ color:C.purple }}>{profile.name}</span>! Accuracy first, then speed.
               </p>
             </div>
             <button onClick={() => { if (window.confirm("Switch user? You'll go back to the login screen.")) { setAppPhase(PHASE.WELCOME); } }} className="fun-btn"
-              style={{ border:BD, padding:"9px 14px", cursor:"pointer", fontFamily:PX, fontSize:8, lineHeight:1.8, background:"rgba(255,255,255,0.15)", color:"#fff", boxShadow:"5px 5px 0 rgba(0,0,0,0.3)", alignSelf:"flex-start" }}>
+              style={{ border:`2px solid ${C.border}`, padding:"9px 14px", cursor:"pointer", fontFamily:PX, fontSize:8, lineHeight:1.8, background:C.bgAlt, color:C.textSub, boxShadow:SD, alignSelf:"flex-start" }}>
               Switch User
             </button>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))", gap:10, marginTop:14 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))", gap:8, marginTop:14 }}>
             {[
-              { label:"Questions", value:totalQuestions.toLocaleString(), color:"#ffd700" },
-              { label:"Levels Mastered", value:`${masteredCount}/${flatLevels.length}`, color:"#34d399" },
-              { label:"Progress", value:`${overallPct}%`, color:"#60a5fa" },
-              { label:"Streak", value:`${streak} day${streak!==1?"s":""}`, color:"#f472b6" },
-              { label:"Badges", value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:"#fbbf24" },
+              { label:"Questions", value:totalQuestions.toLocaleString(), color:C.gold },
+              { label:"Mastered", value:`${masteredCount}/${flatLevels.length}`, color:C.green },
+              { label:"Progress", value:`${overallPct}%`, color:C.purple },
+              { label:"🔥 Streak", value:`${streak} day${streak!==1?"s":""}`, color:"#f472b6" },
+              { label:"Badges", value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold },
             ].map(({ label, value, color }) => (
-              <div key={label} style={{ background:"rgba(255,255,255,0.1)", border:"2px solid rgba(255,255,255,0.15)", padding:"10px 12px" }}>
-                <div style={{ fontSize:9, color:"rgba(255,255,255,0.6)", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</div>
+              <div key={label} style={{ background:C.bgAlt, border:`2px solid ${C.border}`, padding:"10px 12px" }}>
+                <div style={{ fontSize:9, color:C.textDim, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</div>
                 <div style={{ fontSize:18, fontWeight:900, color, marginTop:3 }}>{value}</div>
               </div>
             ))}
@@ -1441,14 +1449,14 @@ export default function App() {
 
         {/* ── Sync status bar ── */}
         {syncPin && syncStatus && (
-          <div style={{ background: syncStatus==="saved"?"#dcfce7":syncStatus==="error"?"#fee2e2":"#fef9c3", border:`2px solid ${syncStatus==="saved"?"#16a34a":syncStatus==="error"?"#ef4444":"#f59e0b"}`, padding:"8px 14px", marginBottom:10, fontWeight:700, fontSize:12, display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ background:syncStatus==="saved"?C.greenBg:syncStatus==="error"?C.redBg:C.bgFlat, border:`2px solid ${syncStatus==="saved"?C.green:syncStatus==="error"?C.red:C.gold}`, padding:"8px 14px", marginBottom:10, fontWeight:700, fontSize:12, display:"flex", alignItems:"center", gap:8, color:syncStatus==="saved"?C.green:syncStatus==="error"?C.red:C.gold }}>
             <span>{syncStatus==="saved"?"✓ Progress saved to cloud":syncStatus==="error"?"✗ Sync error — check connection":"↑ Syncing…"}</span>
           </div>
         )}
 
         {/* ── Tabs ── */}
-        <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:14 }}>
-          {[["dashboard","Worksheet"],["journey","Journey Map"],["badges","Badges"],["history","History"],["settings","Settings"]].map(([id,label]) => (
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
+          {[["dashboard","⚔️ Quest"],["journey","🗺️ Journey"],["badges","🏆 Trophies"],["history","📜 History"],["settings","⚙️ Keep"]].map(([id,label]) => (
             <button key={id} onClick={() => setActiveTab(id)} className="fun-btn" style={S.tab(activeTab===id)}>{label}</button>
           ))}
         </div>
@@ -1475,11 +1483,11 @@ export default function App() {
                     </span>
                     {isSpeedPhase && (
                       <span style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontSize:12, fontWeight:800, color:"#6b7280" }}>Mastery passes:</span>
+                        <span style={{ fontSize:12, fontWeight:800, color:C.textSub }}>Mastery passes:</span>
                         <PhaseIndicator passes={currentProg.speedPasses || 0} />
                       </span>
                     )}
-                    {levelState === LS.MASTERED && <span style={{ fontSize:13, fontWeight:800, color:"#16a34a" }}>✓ Mastered!</span>}
+                    {levelState === LS.MASTERED && <span style={{ fontSize:13, fontWeight:800, color:C.green }}>✓ Mastered!</span>}
                   </div>
                 </div>
 
@@ -1487,24 +1495,24 @@ export default function App() {
                 <div style={{ textAlign:"right", flexShrink:0 }}>
                   {isSpeedPhase ? (
                     <>
-                      <div style={{ fontSize:11, color:"#6b7280", fontWeight:700 }}>Target time</div>
-                      <div style={{ fontSize:26, fontWeight:900, color:"#4f46e5", fontFamily:PX, lineHeight:1.3 }}>{formatTime(currentLevel.masteryTime)}</div>
-                      {currentProg.bestTime != null && <div style={{ fontSize:12, color:"#16a34a", fontWeight:800, marginTop:2 }}>Your best: {formatTime(currentProg.bestTime)}</div>}
+                      <div style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>Target time</div>
+                      <div style={{ fontSize:26, fontWeight:900, color:C.purple, fontFamily:PX, lineHeight:1.3 }}>{formatTime(currentLevel.masteryTime)}</div>
+                      {currentProg.bestTime != null && <div style={{ fontSize:12, color:C.green, fontWeight:800, marginTop:2 }}>Your best: {formatTime(currentProg.bestTime)}</div>}
                     </>
                   ) : (
                     <>
-                      <div style={{ fontSize:11, color:"#6b7280", fontWeight:700 }}>Phase 1</div>
-                      <div style={{ fontSize:16, fontWeight:900, color:"#3b82f6", lineHeight:1.3 }}>Accuracy</div>
-                      <div style={{ fontSize:12, color:"#6b7280", fontWeight:700 }}>Goal: {ACCURACY_THRESHOLD}%+</div>
+                      <div style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>Phase 1</div>
+                      <div style={{ fontSize:16, fontWeight:900, color:C.purple, lineHeight:1.3 }}>Accuracy</div>
+                      <div style={{ fontSize:12, color:C.textSub, fontWeight:700 }}>Goal: {ACCURACY_THRESHOLD}%+</div>
                     </>
                   )}
                 </div>
               </div>
 
-              {/* Strategy tip — shown in accuracy phase to help build understanding */}
+              {/* Strategy tip — shown in accuracy phase */}
               {isAccuracyPhase && (
-                <div style={{ marginTop:12, padding:"10px 14px", background:"#eff6ff", border:"2px solid #bfdbfe" }}>
-                  <span style={{ fontSize:13, fontWeight:700, color:"#1d4ed8" }}>
+                <div style={{ marginTop:12, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.borderHi}` }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:C.purple }}>
                     💡 <em>{currentLevel.sectionTip}</em>
                   </span>
                 </div>
@@ -1512,60 +1520,27 @@ export default function App() {
 
               {/* AI level intro */}
               {levelIntros[currentLevelId] && levelIntros[currentLevelId] !== "loading" && !customProblems && (
-                <div style={{ marginTop:10, padding:"10px 14px", background:"#f0fdf4", border:"2px solid #86efac", fontSize:13, color:"#166534", fontStyle:"italic" }}>
+                <div style={{ marginTop:10, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.green}40`, fontSize:13, color:C.green, fontStyle:"italic" }}>
                   🧙 {levelIntros[currentLevelId]}
                 </div>
               )}
 
               {/* Custom pack indicator */}
               {customProblems && (
-                <div style={{ marginTop:10, padding:"10px 14px", background:"#fef3c7", border:"2px solid #fbbf24", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:"#92400e" }}>📦 Custom Pack: {customPackLabel}</span>
-                  <button onClick={exitCustomPack} style={{ fontSize:10, padding:"3px 8px", background:"#fff", border:"1.5px solid #fbbf24", borderRadius:6, cursor:"pointer", fontWeight:700, color:"#92400e" }}>✕ Exit</button>
+                <div style={{ marginTop:10, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.gold}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:12, fontWeight:700, color:C.gold }}>📦 Custom Pack: {customPackLabel}</span>
+                  <button onClick={exitCustomPack} className="fun-btn" style={{ fontSize:10, padding:"3px 8px", background:C.bgAlt, border:`1.5px solid ${C.gold}`, cursor:"pointer", fontWeight:700, color:C.gold }}>✕ Exit</button>
                 </div>
               )}
 
               {/* Mastery requirements explanation */}
-              <div style={{ marginTop:10, padding:"10px 14px", background:"#f9fafb", border:"2px solid #e5e7eb", fontSize:12, fontWeight:700, color:"#374151" }}>
+              <div style={{ marginTop:10, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.border}`, fontSize:12, fontWeight:700, color:C.textSub }}>
                 {isAccuracyPhase && `Phase 1 — Accuracy: Get ${ACCURACY_THRESHOLD}%+ correct to unlock Phase 2 (Speed)`}
                 {isSpeedPhase && `Phase 2 — Speed: ${ACCURACY_THRESHOLD}%+ accuracy AND under ${formatTime(currentLevel.masteryTime)} · Need ${SPEED_PASSES_NEEDED} passes to master`}
                 {levelState === LS.MASTERED && "This level is mastered! Practising it here keeps your skills sharp."}
                 {levelState === LS.LOCKED && "Complete the previous level to unlock this one."}
               </div>
             </div>
-
-            {/* Daily challenge card */}
-            {dailyChallenge && (
-              <div style={{ ...S.card, borderLeft:"6px solid #f59e0b", background: dailyChallenge.completed ? "#f0fdf4" : "#fffbeb" }}>
-                <div style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:"#92400e", marginBottom:4, lineHeight:1.8 }}>⭐ Daily Challenge</div>
-                {dailyChallenge.flavour && <div style={{ fontSize:12, color:"#78350f", marginBottom:8, fontStyle:"italic" }}>{dailyChallenge.flavour}</div>}
-                {dailyChallenge.completed ? (
-                  <div style={{ fontSize:14, fontWeight:900, color:"#16a34a" }}>✓ Challenge complete! Well done! 🌟</div>
-                ) : (
-                  <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
-                    <span style={{ fontSize:20, fontWeight:900 }}>{dailyChallenge.a} {dailyChallenge.op} {dailyChallenge.b} = </span>
-                    <input
-                      value={dailyAnswer}
-                      inputMode="decimal"
-                      onChange={e => setDailyAnswer(e.target.value.replace(/[^0-9./-]/g, ""))}
-                      onKeyDown={e => { if (e.key === "Enter" && dailyAnswer !== "") { if (String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); } }}
-                      style={{ width:64, padding:"6px 8px", fontSize:16, fontWeight:900, border:"2px solid #f59e0b", borderRadius:6, textAlign:"center" }}
-                      placeholder="?"
-                    />
-                    <button onClick={() => { if (dailyAnswer !== "" && String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); }}
-                      className="fun-btn" style={S.btn("#f59e0b","#92400e")}>Check</button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Mistake insight */}
-            {mistakeInsight && (
-              <div style={{ ...S.card, background:"#fdf4ff", borderLeft:"6px solid #a855f7" }}>
-                <div style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:"#7e22ce", marginBottom:4, lineHeight:1.8 }}>🔮 AI Insight</div>
-                <div style={{ fontSize:13, color:"#4b5563", fontStyle:"italic" }}>{mistakeInsight}</div>
-              </div>
-            )}
 
             {/* Worksheet */}
             {(() => {
@@ -1587,11 +1562,11 @@ export default function App() {
                     <div style={{ display:"flex", alignItems:"center", gap:14 }}>
                       {/* Timer: shown live only in speed phase */}
                       {isSpeedPhase ? (
-                        <div style={{ background:"#111", color:timerColor, padding:"8px 14px", border:BD, fontFamily:PX, fontSize:15, lineHeight:1.4, minWidth:84, textAlign:"center" }}>
+                        <div style={{ background:C.bgAlt, color:timerColor, padding:"8px 14px", border:`4px solid ${timerColor}40`, fontFamily:PX, fontSize:15, lineHeight:1.4, minWidth:84, textAlign:"center", boxShadow:`0 0 12px ${timerColor}30` }}>
                           {formatTime(time)}
                         </div>
                       ) : (
-                        <div style={{ background:"#f9fafb", color:"#9ca3af", padding:"8px 14px", border:"2px solid #e5e7eb", fontFamily:PX, fontSize:10, lineHeight:1.6 }}>
+                        <div style={{ background:C.bgAlt, color:C.textDim, padding:"8px 14px", border:`2px solid ${C.border}`, fontFamily:PX, fontSize:10, lineHeight:1.6 }}>
                           Focus on accuracy
                         </div>
                       )}
@@ -1610,35 +1585,35 @@ export default function App() {
                       <div style={{ display:"flex", gap:6 }}>
                         {Array.from({ length: totalPages }, (_, p) => (
                           <div key={p} style={{ padding:"3px 10px", fontFamily:PX, fontSize:7, lineHeight:1.8,
-                            background: p < currentPage ? "#16a34a" : p === currentPage ? C.purple : "#e5e7eb",
-                            color: p < currentPage ? "#fff" : p === currentPage ? "#ffd700" : "#9ca3af",
-                            border: `2px solid ${p < currentPage ? "#16a34a" : p === currentPage ? C.gold : "#e5e7eb"}` }}>
+                            background: p < currentPage ? C.greenBg : p === currentPage ? C.bgCard : C.bgAlt,
+                            color: p < currentPage ? C.green : p === currentPage ? C.gold : C.textDim,
+                            border: `2px solid ${p < currentPage ? C.green : p === currentPage ? C.gold : C.border}` }}>
                             {p < currentPage ? "✓" : `Page ${p+1}`}
                           </div>
                         ))}
                       </div>
-                      <span style={{ fontSize:12, fontWeight:800, color:"#6b5e9e" }}>
+                      <span style={{ fontSize:12, fontWeight:800, color:C.textSub }}>
                         Q{pageStart + 1}–{pageStart + PAGE_SIZE}
                       </span>
                     </div>
                     {/* Progress bar across all pages */}
-                    <div style={{ width:"100%", height:8, background:"#e5e7eb", border:"2px solid #d8d0f0", overflow:"hidden" }}>
-                      <div style={{ width:`${(currentPage / totalPages) * 100}%`, height:"100%", background:C.gold, transition:"width 0.4s" }} />
+                    <div style={{ width:"100%", height:8, background:C.bgAlt, border:`2px solid ${C.border}`, overflow:"hidden" }}>
+                      <div style={{ width:`${(currentPage / totalPages) * 100}%`, height:"100%", background:C.gold, transition:"width 0.5s ease" }} />
                     </div>
                   </div>
 
                   {/* Per-page live accuracy (shows after first lock) */}
                   {pageLocked > 0 && (
                     <div style={{ marginBottom:12 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontWeight:700, marginBottom:3, color:"#6b7280" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontWeight:700, marginBottom:3, color:C.textSub }}>
                         <span>{pageCorrect} correct of {pageLocked} answered</span>
-                        <span style={{ color: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? "#16a34a" : (pageCorrect/pageLocked)*100 >= 80 ? "#f59e0b" : "#ef4444" }}>
+                        <span style={{ color: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? C.green : (pageCorrect/pageLocked)*100 >= 80 ? C.gold : C.red }}>
                           {Math.round((pageCorrect / pageLocked) * 100)}%
                         </span>
                       </div>
-                      <div style={{ width:"100%", height:10, background:"#e5e7eb", border:"2px solid #111", overflow:"hidden" }}>
+                      <div style={{ width:"100%", height:10, background:C.bgAlt, border:`2px solid ${C.border}`, overflow:"hidden" }}>
                         <div style={{ width:`${(pageCorrect/pageLocked)*100}%`, height:"100%",
-                          background: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? "#22c55e" : (pageCorrect/pageLocked)*100 >= 80 ? "#f59e0b" : "#ef4444",
+                          background: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? C.green : (pageCorrect/pageLocked)*100 >= 80 ? C.gold : C.red,
                           transition:"width 0.25s" }} />
                       </div>
                     </div>
@@ -1646,7 +1621,7 @@ export default function App() {
 
                   {/* Review notice */}
                   {isSpeedPhase && masteredIds.length >= 1 && pageProblems.some(p => p.isReview) && (
-                    <div style={{ marginBottom:10, fontSize:12, color:"#6b7280", fontWeight:700, padding:"6px 10px", background:"#f0f4ff", border:"2px solid #c7d2fe" }}>
+                    <div style={{ marginBottom:10, fontSize:12, color:C.textSub, fontWeight:700, padding:"6px 10px", background:C.bgFlat, border:`2px solid ${C.border}` }}>
                       ♻️ Includes review questions from previous levels.
                     </div>
                   )}
@@ -1661,9 +1636,9 @@ export default function App() {
                       const wrong = locked && !correct;
                       const live = !locked && val !== "" && normalizeAnswer(val) === normalizeAnswer(p.answer);
                       return (
-                        <div key={`${currentLevelId}-${i}`} className={correct||live?"correct-card":""} style={{ ...S.qCard(correct,wrong,live), outline: p.isReview ? "2px dashed #c7d2fe" : "none" }}>
-                          {p.isReview && <div style={{ fontSize:7, color:"#818cf8", fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>Review</div>}
-                          <div style={{ fontSize:7, color:"#9ca3af", fontFamily:PX, marginBottom:3, lineHeight:1.6 }}>Q{i+1}</div>
+                        <div key={`${currentLevelId}-${i}`} className={correct||live?"correct-card":""} style={{ ...S.qCard(correct,wrong,live), outline: p.isReview ? `2px dashed ${C.purple}` : "none" }}>
+                          {p.isReview && <div style={{ fontSize:7, color:C.purple, fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>Review</div>}
+                          <div style={{ fontSize:7, color:C.textDim, fontFamily:PX, marginBottom:3, lineHeight:1.6 }}>Q{i+1}</div>
                           <div style={{ fontSize:19, fontWeight:900, display:"flex", alignItems:"center", gap:4 }}>
                             <span>{p.a} {p.op} {p.b} =</span>
                             <input
@@ -1705,17 +1680,17 @@ export default function App() {
                           {locked && wrong && val === "" && (
                             <div style={{ position:"absolute", top:4, right:6, fontSize:14 }}>—</div>
                           )}
-                          {locked && <div style={{ marginTop:4, fontSize:11, color: correct?"#16a34a":"#ef4444", fontWeight:700 }}>{correct ? "✓" : `✗ ${p.answer}`}</div>}
+                          {locked && <div style={{ marginTop:4, fontSize:11, color: correct?C.green:C.red, fontWeight:700 }}>{correct ? "✓" : `✗ ${p.answer}`}</div>}
                           {locked && wrong && !hints[i] && (
                             <button
                               onClick={() => fetchHint(i, p, val)}
-                              style={{ marginTop:5, fontSize:10, padding:"2px 8px", background:"#fef9c3", border:"1.5px solid #fbbf24", borderRadius:6, cursor:"pointer", fontWeight:700, color:"#92400e" }}
+                              style={{ marginTop:5, fontSize:10, padding:"2px 8px", background:C.bgFlat, border:`1.5px solid ${C.gold}`, cursor:"pointer", fontWeight:700, color:C.gold }}
                             >
                               💡 Hint
                             </button>
                           )}
                           {locked && wrong && hints[i] && (
-                            <div style={{ marginTop:5, fontSize:10, color:"#4b5563", lineHeight:1.5, fontStyle:"italic" }}>
+                            <div style={{ marginTop:5, fontSize:10, color:C.textSub, lineHeight:1.5, fontStyle:"italic" }}>
                               {hints[i].loading ? "thinking…" : hints[i].text}
                             </div>
                           )}
@@ -1727,15 +1702,15 @@ export default function App() {
                   {/* Page action button */}
                   <div style={{ marginTop:14, display:"flex", gap:10, justifyContent:"flex-end" }}>
                     {!pageAllLocked ? (
-                      <button onClick={submitCurrentPage} className="fun-btn" style={S.btn("#4c2f9e", C.shadow)}>
+                      <button onClick={submitCurrentPage} className="fun-btn" style={S.btn(C.purpleMid, C.shadow)}>
                         Submit Page {currentPage + 1}
                       </button>
                     ) : currentPage < totalPages - 1 ? (
-                      <button onClick={advancePage} className="fun-btn" style={S.btn("#16a34a","#14532d")}>
+                      <button onClick={advancePage} className="fun-btn" style={S.btn(C.green, C.greenBg)}>
                         Next Page →
                       </button>
                     ) : (
-                      <button onClick={finishSession} className="fun-btn" style={S.btn("#16a34a","#14532d")}>
+                      <button onClick={finishSession} className="fun-btn" style={S.btn(C.green, C.greenBg)}>
                         Complete Quest! ⭐
                       </button>
                     )}
@@ -1744,9 +1719,41 @@ export default function App() {
               );
             })()}
 
+            {/* Daily challenge card — below worksheet */}
+            {dailyChallenge && (
+              <div className={dailyChallenge.completed ? "" : "quest-float"} style={{ ...S.card, borderLeft:`6px solid ${C.gold}`, background: dailyChallenge.completed ? C.greenBg : C.bgCard }}>
+                <div style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:C.gold, marginBottom:4, lineHeight:1.8 }}>⭐ Daily Quest</div>
+                {dailyChallenge.flavour && <div style={{ fontSize:12, color:C.textSub, marginBottom:8, fontStyle:"italic" }}>{dailyChallenge.flavour}</div>}
+                {dailyChallenge.completed ? (
+                  <div style={{ fontSize:14, fontWeight:900, color:C.green }}>✓ Quest complete! Well done! 🌟</div>
+                ) : (
+                  <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:20, fontWeight:900, color:C.text }}>{dailyChallenge.a} {dailyChallenge.op} {dailyChallenge.b} = </span>
+                    <input
+                      value={dailyAnswer} inputMode="decimal"
+                      onChange={e => setDailyAnswer(e.target.value.replace(/[^0-9./-]/g, ""))}
+                      onKeyDown={e => { if (e.key === "Enter" && dailyAnswer !== "") { if (String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); } }}
+                      style={{ width:64, padding:"6px 8px", fontSize:16, fontWeight:900, border:`2px solid ${C.gold}`, background:C.bgFlat, color:C.text, textAlign:"center" }}
+                      placeholder="?"
+                    />
+                    <button onClick={() => { if (dailyAnswer !== "" && String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); }}
+                      className="fun-btn" style={S.btn(C.gold, C.goldDim)}>Check</button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AI Insight — below worksheet */}
+            {mistakeInsight && (
+              <div style={{ ...S.card, background:C.bgCard, borderLeft:`6px solid ${C.purpleMid}` }}>
+                <div style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:C.purple, marginBottom:4, lineHeight:1.8 }}>🔮 Oracle Insight</div>
+                <div style={{ fontSize:13, color:C.textSub, fontStyle:"italic", lineHeight:1.6 }}>{mistakeInsight}</div>
+              </div>
+            )}
+
             {/* Results panel */}
             {done && lastResult && (
-              <div style={{ ...S.card, borderColor: lastResult.justMastered ? "#ffd700" : lastResult.encouragement?.type === "success" ? "#22c55e" : lastResult.encouragement?.type === "info" ? "#3b82f6" : "#ef4444", borderWidth:4 }}>
+              <div style={{ ...S.card, borderColor: lastResult.justMastered ? C.gold : lastResult.encouragement?.type === "success" ? C.green : lastResult.encouragement?.type === "info" ? C.purple : C.red, borderWidth:4 }}>
                 <div style={{ display:"flex", gap:14, flexWrap:"wrap", justifyContent:"space-between", alignItems:"flex-start" }}>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:22, marginBottom:6 }}>{lastResult.encouragement?.emoji}</div>
@@ -1755,12 +1762,12 @@ export default function App() {
                   </div>
                   <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                     {[
-                      { label:"Correct", val:`${score.correct}/${score.total}`, color: score.accuracy >= ACCURACY_THRESHOLD ? "#16a34a" : "#f59e0b" },
-                      { label:"Accuracy", val:`${lastResult.accuracy}%`, color: lastResult.accuracy >= ACCURACY_THRESHOLD ? "#16a34a" : "#f59e0b" },
-                      ...(isSpeedPhase ? [{ label:"Time", val:lastResult.time != null ? formatTime(lastResult.time) : "—", color: lastResult.time <= currentLevel.masteryTime ? "#16a34a" : "#f59e0b" }] : []),
+                      { label:"Correct", val:`${score.correct}/${score.total}`, color: score.accuracy >= ACCURACY_THRESHOLD ? C.green : C.gold },
+                      { label:"Accuracy", val:`${lastResult.accuracy}%`, color: lastResult.accuracy >= ACCURACY_THRESHOLD ? C.green : C.gold },
+                      ...(isSpeedPhase ? [{ label:"Time", val:lastResult.time != null ? formatTime(lastResult.time) : "—", color: lastResult.time <= currentLevel.masteryTime ? C.green : C.gold }] : []),
                     ].map(({ label, val, color }) => (
-                      <div key={label} style={{ textAlign:"center", padding:"10px 14px", background:"#f9fafb", border:"2px solid #e5e7eb" }}>
-                        <div style={{ fontSize:11, color:"#6b7280", fontWeight:700 }}>{label}</div>
+                      <div key={label} style={{ textAlign:"center", padding:"10px 14px", background:C.bgAlt, border:`2px solid ${C.border}` }}>
+                        <div style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>{label}</div>
                         <div style={{ fontSize:22, fontWeight:900, color, marginTop:2 }}>{val}</div>
                       </div>
                     ))}
@@ -1769,26 +1776,26 @@ export default function App() {
 
                 {/* Speed phase pass tracker */}
                 {isSpeedPhase && (
-                  <div style={{ marginTop:12, padding:"10px 14px", background:"#fef9c3", border:"2px solid #fbbf24", display:"flex", alignItems:"center", gap:12 }}>
-                    <span style={{ fontSize:12, fontWeight:800, color:"#92400e" }}>Mastery passes:</span>
+                  <div style={{ marginTop:12, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.gold}`, display:"flex", alignItems:"center", gap:12 }}>
+                    <span style={{ fontSize:12, fontWeight:800, color:C.gold }}>Mastery passes:</span>
                     <PhaseIndicator passes={lastResult.speedPasses} />
-                    <span style={{ fontSize:12, fontWeight:700, color:"#92400e" }}>{lastResult.speedPasses}/{SPEED_PASSES_NEEDED}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:C.gold }}>{lastResult.speedPasses}/{SPEED_PASSES_NEEDED}</span>
                   </div>
                 )}
 
                 {/* Slowest questions tip */}
                 {Object.keys(questionTimings).length > 3 && (
-                  <div style={{ marginTop:10, padding:"10px 12px", background:"#f9fafb", border:"2px solid #e5e7eb" }}>
-                    <div style={{ fontSize:12, fontWeight:800, color:"#374151", marginBottom:6 }}>Slowest questions — focus on these:</div>
+                  <div style={{ marginTop:10, padding:"10px 12px", background:C.bgAlt, border:`2px solid ${C.border}` }}>
+                    <div style={{ fontSize:12, fontWeight:800, color:C.text, marginBottom:6 }}>Slowest questions — focus on these:</div>
                     {Object.entries(questionTimings).sort((a,b) => b[1]-a[1]).slice(0,3).map(([idx,ms]) => {
                       const p = problems[Number(idx)];
-                      return p ? <div key={idx} style={{ fontSize:13, color:"#6b7280", marginTop:3 }}>{p.a} {p.op} {p.b} = {p.answer} → <strong style={{ color:"#111" }}>{formatMs(ms)}</strong></div> : null;
+                      return p ? <div key={idx} style={{ fontSize:13, color:C.textSub, marginTop:3 }}>{p.a} {p.op} {p.b} = {p.answer} → <strong style={{ color:C.text }}>{formatMs(ms)}</strong></div> : null;
                     })}
                   </div>
                 )}
 
                 <div style={{ marginTop:12 }}>
-                  <button onClick={startSession} className="fun-btn" style={S.btn("#4f46e5","#2e1f8f")}>Try Again</button>
+                  <button onClick={startSession} className="fun-btn" style={S.btn(C.purpleMid, C.shadow)}>Try Again</button>
                 </div>
               </div>
             )}
@@ -1807,17 +1814,17 @@ export default function App() {
             </div>
             <p style={{ ...S.sub, marginBottom:16 }}>Each level has two phases: Accuracy first, then Speed. Master both to unlock the next level.</p>
             <div style={{ marginBottom:20 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, fontWeight:700, marginBottom:5, color:"#6b5e9e" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, fontWeight:700, marginBottom:5, color:C.textSub }}>
                 <span>Overall mastery</span><span>{masteredCount} of {flatLevels.length} levels ({overallPct}%)</span>
               </div>
-              <div style={{ width:"100%", height:18, background:"#e5e7eb", border:BD, overflow:"hidden" }}>
+              <div style={{ width:"100%", height:18, background:C.bgAlt, border:BD, overflow:"hidden" }}>
                 <div style={{ width:`${overallPct}%`, height:"100%", background:C.gold, transition:"width 0.4s" }} />
               </div>
             </div>
             {CURRICULUM.map(section => (
               <div key={section.id} style={{ ...S.flat, borderLeft:`6px solid ${section.color}`, marginBottom:14 }}>
                 <div style={{ fontWeight:900, fontSize:16, color:C.purple, marginBottom:3 }}>{section.name}</div>
-                <div style={{ fontSize:12, color:"#6b5e9e", fontWeight:700, marginBottom:10, lineHeight:1.5 }}>💡 {section.tip}</div>
+                <div style={{ fontSize:12, color:C.textSub, fontWeight:700, marginBottom:10, lineHeight:1.5 }}>💡 {section.tip}</div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))", gap:8 }}>
                   {section.levels.map(level => {
                     const state = getLevelState(level.id, levelProgress);
@@ -1827,26 +1834,26 @@ export default function App() {
                     const sc = stateColor[state];
                     return (
                       <button key={level.id} onClick={() => !isLocked && practiceLevel(level.id)} className={isLocked ? "" : "fun-btn"}
-                        style={{ textAlign:"left", border:`4px solid ${isLocked?"#e5e7eb":sc}`, padding:12, background:isMastered?"#f0fdf4":state===LS.SPEED?"#fffbeb":state===LS.ACCURACY?"#eff6ff":"#f9fafb", cursor:isLocked?"not-allowed":"pointer", boxShadow:isLocked?"none":`4px 4px 0 ${sc}`, opacity:isLocked?0.55:1 }}>
+                        style={{ textAlign:"left", border:`4px solid ${isLocked?C.border:sc}`, padding:12, background:isMastered?C.greenBg:state===LS.SPEED?`${C.gold}11`:state===LS.ACCURACY?`${C.purple}11`:C.bgAlt, cursor:isLocked?"not-allowed":"pointer", boxShadow:isLocked?"none":`4px 4px 0 ${sc}`, opacity:isLocked?0.55:1 }}>
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:6 }}>
-                          <div style={{ fontWeight:900, fontSize:13, color:isLocked?"#9ca3af":C.purple }}>{level.title}</div>
+                          <div style={{ fontWeight:900, fontSize:13, color:isLocked?C.textDim:C.purple }}>{level.title}</div>
                           <span style={{ fontFamily:PX, fontSize:7, color:sc, lineHeight:1.6, whiteSpace:"nowrap" }}>
                             {isMastered?"✓":state===LS.SPEED?"⚡":state===LS.ACCURACY?"🎯":"🔒"}
                           </span>
                         </div>
-                        <div style={{ fontSize:11, color:"#6b5e9e", fontWeight:700, marginTop:3 }}>{level.skill}</div>
+                        <div style={{ fontSize:11, color:C.textSub, fontWeight:700, marginTop:3 }}>{level.skill}</div>
                         <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", gap:6, alignItems:"center" }}>
-                          <span style={{ fontSize:11, fontWeight:700, color:"#9ca3af" }}>Target: {formatTime(level.masteryTime)}</span>
-                          {prog.bestTime != null && <span style={{ fontSize:11, fontWeight:800, color:"#16a34a" }}>Best: {formatTime(prog.bestTime)}</span>}
+                          <span style={{ fontSize:11, fontWeight:700, color:C.textDim }}>Target: {formatTime(level.masteryTime)}</span>
+                          {prog.bestTime != null && <span style={{ fontSize:11, fontWeight:800, color:C.green }}>Best: {formatTime(prog.bestTime)}</span>}
                         </div>
                         {state === LS.SPEED && (
                           <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:6 }}>
-                            <span style={{ fontSize:11, fontWeight:700, color:"#92400e" }}>Passes:</span>
+                            <span style={{ fontSize:11, fontWeight:700, color:C.gold }}>Passes:</span>
                             <PhaseIndicator passes={prog.speedPasses || 0} size={14} />
                           </div>
                         )}
                         {state === LS.ACCURACY && prog.bestAccuracy > 0 && (
-                          <div style={{ marginTop:4, fontSize:11, fontWeight:700, color:"#3b82f6" }}>Best accuracy: {prog.bestAccuracy}%</div>
+                          <div style={{ marginTop:4, fontSize:11, fontWeight:700, color:C.purple }}>Best accuracy: {prog.bestAccuracy}%</div>
                         )}
                         {isMastered && (() => {
                           const lb = LEVEL_BADGE_DEFS.find(b => b.levelId === level.id);
@@ -1901,20 +1908,20 @@ export default function App() {
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
                         <div style={{ width:4, height:20, background:section.color }} />
                         <span style={{ fontWeight:900, fontSize:13, color:C.purple }}>{section.name}</span>
-                        <span style={{ fontSize:11, color:"#6b5e9e", fontWeight:700 }}>{sectionEarned}/{sectionLevelBadges.length}</span>
+                        <span style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>{sectionEarned}/{sectionLevelBadges.length}</span>
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(80px,1fr))", gap:8 }}>
                         {sectionLevelBadges.map(b => {
                           const earned = badges.includes(b.id);
                           return (
                             <button key={b.id} onClick={() => setSelectedBadge(b)}
-                              style={{ border:`3px solid ${earned ? b.color : "#e5e7eb"}`, padding:"10px 6px",
-                                background: earned ? `${b.color}15` : "#f9fafb",
+                              style={{ border:`3px solid ${earned ? b.color : C.border}`, padding:"10px 6px",
+                                background: earned ? `${b.color}15` : C.bgAlt,
                                 boxShadow: earned ? `3px 3px 0 ${b.color}55` : "none",
                                 cursor:"pointer", textAlign:"center", transition:"transform 0.1s" }}
                               className="fun-btn">
                               <BadgeImg src={b.image} color={b.color} earned={earned} size={44} />
-                              <div style={{ fontSize:9, fontWeight:900, color: earned ? b.color : "#9ca3af",
+                              <div style={{ fontSize:9, fontWeight:900, color: earned ? b.color : C.textDim,
                                 marginTop:5, lineHeight:1.3, wordBreak:"break-word" }}>{b.label}</div>
                               {earned && <div style={{ fontFamily:PX, fontSize:5, color:b.color, marginTop:3 }}>✓</div>}
                             </button>
@@ -1941,23 +1948,23 @@ export default function App() {
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10,
                         borderBottom:`2px solid ${tierInfo.color}44`, paddingBottom:6 }}>
                         <div style={{ fontFamily:PX, fontSize:7, color:tierInfo.color, lineHeight:1.8 }}>✦ {tierInfo.label}</div>
-                        <div style={{ fontSize:11, color:"#6b5e9e", fontWeight:700 }}>{tierEarned}/{tierBadges.length}</div>
+                        <div style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>{tierEarned}/{tierBadges.length}</div>
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))", gap:10 }}>
                         {tierBadges.map(b => {
                           const earned = badges.includes(b.id);
                           return (
                             <button key={b.id} onClick={() => setSelectedBadge(b)}
-                              style={{ border:`3px solid ${earned ? b.color : "#e5e7eb"}`, padding:12,
-                                background: earned ? `${b.color}11` : "#f9fafb",
+                              style={{ border:`3px solid ${earned ? b.color : C.border}`, padding:12,
+                                background: earned ? `${b.color}11` : C.bgAlt,
                                 boxShadow: earned ? `4px 4px 0 ${b.color}44` : "none",
                                 display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer",
                                 textAlign:"left" }}
                               className="fun-btn">
                               <BadgeImg src={b.image} color={b.color} earned={earned} size={44} />
                               <div style={{ flex:1 }}>
-                                <div style={{ fontWeight:900, fontSize:12, color: earned ? b.color : "#9ca3af", lineHeight:1.3 }}>{b.label}</div>
-                                <div style={{ fontSize:10, color:"#6b7280", fontWeight:700, marginTop:3, lineHeight:1.4 }}>{b.desc}</div>
+                                <div style={{ fontWeight:900, fontSize:12, color: earned ? b.color : C.textDim, lineHeight:1.3 }}>{b.label}</div>
+                                <div style={{ fontSize:10, color:C.textSub, fontWeight:700, marginTop:3, lineHeight:1.4 }}>{b.desc}</div>
                                 {earned && <div style={{ marginTop:4, fontFamily:PX, fontSize:5, color:b.color, lineHeight:1.8 }}>✓ EARNED</div>}
                               </div>
                             </button>
@@ -1984,17 +1991,17 @@ export default function App() {
                     <div style={{ ...S.sub, marginTop:2 }}>{s.sectionName} · {s.phase} Phase · {s.date}</div>
                   </div>
                   <div style={{ textAlign:"right" }}>
-                    <div style={{ fontWeight:900, fontSize:20, color:s.accuracy>=ACCURACY_THRESHOLD?"#16a34a":s.accuracy>=80?"#f59e0b":"#ef4444" }}>{s.accuracy}%</div>
+                    <div style={{ fontWeight:900, fontSize:20, color:s.accuracy>=ACCURACY_THRESHOLD?C.green:s.accuracy>=80?C.gold:C.red }}>{s.accuracy}%</div>
                     <div style={S.sub}>{s.correct}/{s.total} · {s.timeLabel}</div>
-                    {s.phase==="Speed" && <div style={{ fontSize:11, fontWeight:800, color:s.passed&&s.onTime?"#16a34a":s.passed?"#f59e0b":"#ef4444", marginTop:2 }}>
+                    {s.phase==="Speed" && <div style={{ fontSize:11, fontWeight:800, color:s.passed&&s.onTime?C.green:s.passed?C.gold:C.red, marginTop:2 }}>
                       {s.passed && s.onTime ? "✓ Speed pass" : s.passed ? "Accurate, not fast enough" : "Needs more accuracy"}
                     </div>}
                   </div>
                 </div>
                 {s.slowest?.length > 0 && (
-                  <div style={{ marginTop:8, padding:"8px 10px", background:"#fff", border:"2px solid #e5e7eb" }}>
-                    <div style={{ fontSize:11, fontWeight:800, marginBottom:4 }}>Slowest questions:</div>
-                    {s.slowest.map((q, i) => <div key={i} style={{ fontSize:12, color:"#6b7280", marginTop:i>0?3:0 }}>{q.label} → <strong style={{ color:"#111" }}>{formatMs(q.ms)}</strong></div>)}
+                  <div style={{ marginTop:8, padding:"8px 10px", background:C.bgCard, border:`2px solid ${C.border}` }}>
+                    <div style={{ fontSize:11, fontWeight:800, marginBottom:4, color:C.text }}>Slowest questions:</div>
+                    {s.slowest.map((q, i) => <div key={i} style={{ fontSize:12, color:C.textSub, marginTop:i>0?3:0 }}>{q.label} → <strong style={{ color:C.text }}>{formatMs(q.ms)}</strong></div>)}
                   </div>
                 )}
               </div>
@@ -2015,7 +2022,7 @@ export default function App() {
                 <div style={{ display:"flex", gap:10, marginTop:10 }}>
                   <button onClick={() => { if (pinEntry===appSettings.parentPin) { setIsSettingsUnlocked(true); setPinError(""); } else setPinError("Wrong PIN."); }} className="fun-btn" style={S.btn()}>Unlock</button>
                 </div>
-                {pinError && <p style={{ color:"#ef4444", fontWeight:700, marginTop:8 }}>{pinError}</p>}
+                {pinError && <p style={{ color:C.red, fontWeight:700, marginTop:8 }}>{pinError}</p>}
                 {!appSettings.hasUnlockedSettingsOnce && <p style={{ ...S.sub, marginTop:8 }}>Default PIN: 1234</p>}
               </div>
             ) : (
@@ -2038,15 +2045,15 @@ export default function App() {
                     <button onClick={() => { if (!/^\d{4}$/.test(newPin)) { setPinError("Must be 4 digits."); return; } setAppSettings(p => ({ ...p, parentPin:newPin, hasUnlockedSettingsOnce:true })); setNewPin(""); setPinSuccess("PIN saved!"); }} className="fun-btn" style={S.btn()}>Save PIN</button>
                     <button onClick={() => { setIsSettingsUnlocked(false); setPinEntry(""); setNewPin(""); }} className="fun-btn" style={S.btn("#6b7280","#374151")}>Lock</button>
                   </div>
-                  {pinError && <p style={{ color:"#ef4444", fontWeight:700, marginTop:8 }}>{pinError}</p>}
-                  {pinSuccess && <p style={{ color:"#16a34a", fontWeight:700, marginTop:8 }}>{pinSuccess}</p>}
+                  {pinError && <p style={{ color:C.red, fontWeight:700, marginTop:8 }}>{pinError}</p>}
+                  {pinSuccess && <p style={{ color:C.green, fontWeight:700, marginTop:8 }}>{pinSuccess}</p>}
                 </div>
                 <div style={{ ...S.flat, marginBottom:14 }}>
                   <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>Cloud Sync PIN</div>
                   <p style={S.sub}>Your progress syncs between devices using a 6-digit PIN you choose. Enter the same PIN on any device to load your progress.</p>
                   <div style={{ marginTop:10 }}>
-                    <div style={{ fontWeight:700, marginBottom:8 }}>Current PIN: <span style={{ fontFamily:"monospace", fontSize:18, letterSpacing:4, background:"#f0f4ff", padding:"2px 8px", borderRadius:6 }}>{syncPin || "None"}</span></div>
-                    <div style={{ ...S.sub, color: syncStatus==="saved"?"#16a34a":syncStatus==="error"?"#ef4444":syncStatus==="syncing"?"#f59e0b":"#6b7280" }}>
+                    <div style={{ fontWeight:700, marginBottom:8, color:C.text }}>Current PIN: <span style={{ fontFamily:"monospace", fontSize:18, letterSpacing:4, background:C.bgAlt, padding:"2px 8px", border:`1px solid ${C.border}` }}>{syncPin || "None"}</span></div>
+                    <div style={{ ...S.sub, color: syncStatus==="saved"?C.green:syncStatus==="error"?C.red:syncStatus==="syncing"?C.gold:C.textSub }}>
                       {syncStatus==="saved"?"✓ Saved to cloud":syncStatus==="error"?"✗ Sync error":syncStatus==="syncing"?"↑ Syncing…":syncPin?"Cloud sync active":"No PIN — progress saved locally only"}
                     </div>
                   </div>
@@ -2073,7 +2080,7 @@ export default function App() {
                     </button>
                   </div>
                   {progressResponse && (
-                    <div style={{ marginTop:10, padding:"10px 14px", background:"#f0f9ff", border:"2px solid #bae6fd", fontSize:13, color:"#0c4a6e", lineHeight:1.6 }}>
+                    <div style={{ marginTop:10, padding:"10px 14px", background:C.bgCard, border:`2px solid ${C.purple}40`, fontSize:13, color:C.textSub, lineHeight:1.6 }}>
                       {progressResponse}
                     </div>
                   )}
@@ -2097,7 +2104,7 @@ export default function App() {
                   <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>📷 Homework Helper</div>
                   <p style={S.sub}>Take a photo of a maths worksheet — Claude turns it into a practice session.</p>
                   <div style={{ marginTop:10 }}>
-                    <label style={{ display:"inline-block", padding:"8px 16px", background:"#4c2f9e", color:"#fff", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:13 }}>
+                    <label style={{ display:"inline-block", padding:"8px 16px", background:C.purpleMid, color:"#fff", border:`2px solid ${C.borderHi}`, boxShadow:`3px 3px 0 ${C.shadow}`, cursor:"pointer", fontWeight:700, fontSize:13 }}>
                       {homeworkLoading ? "Reading worksheet…" : "📷 Upload Photo"}
                       <input type="file" accept="image/*" capture="environment" onChange={processHomework}
                         style={{ display:"none" }} disabled={homeworkLoading} />
@@ -2115,20 +2122,20 @@ export default function App() {
                     <input type="date" value={goalDeadlineInput} onChange={e => setGoalDeadlineInput(e.target.value)}
                       style={{ ...S.settingInp, width:"100%" }} />
                     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                      <button onClick={() => { updateProfile({ goal: goalInput, goalDeadline: goalDeadlineInput }); }} className="fun-btn" style={S.btn("#16a34a","#14532d")}>Save Goal</button>
+                      <button onClick={() => { updateProfile({ goal: goalInput, goalDeadline: goalDeadlineInput }); }} className="fun-btn" style={S.btn(C.green, C.greenBg)}>Save Goal</button>
                       <button onClick={checkGoalProgress} disabled={goalLoading} className="fun-btn" style={S.btn()}>
                         {goalLoading ? "Checking…" : "Check Progress"}
                       </button>
                     </div>
                   </div>
                   {goalAssessment && (
-                    <div style={{ marginTop:10, padding:"10px 14px", background:"#f0fdf4", border:"2px solid #86efac", fontSize:13, color:"#166534", lineHeight:1.6 }}>
+                    <div style={{ marginTop:10, padding:"10px 14px", background:C.greenBg, border:`2px solid ${C.green}40`, fontSize:13, color:C.green, lineHeight:1.6 }}>
                       {goalAssessment}
                     </div>
                   )}
                   {profile.goal && (
-                    <div style={{ marginTop:8, fontSize:12, color:"#6b7280" }}>
-                      Current goal: <strong>{profile.goal}</strong>{profile.goalDeadline ? ` by ${profile.goalDeadline}` : ""}
+                    <div style={{ marginTop:8, fontSize:12, color:C.textSub }}>
+                      Current goal: <strong style={{ color:C.text }}>{profile.goal}</strong>{profile.goalDeadline ? ` by ${profile.goalDeadline}` : ""}
                     </div>
                   )}
                 </div>
