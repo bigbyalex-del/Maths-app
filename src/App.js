@@ -1928,14 +1928,14 @@ export default function App() {
             {/* Stats row */}
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))", gap:8, marginTop:16 }}>
               {[
-                { label:"Questions", value:totalQuestions.toLocaleString(), color:C.gold, icon:"📝" },
-                { label:"Mastered", value:`${masteredCount}/${flatLevels.length}`, color:C.green, icon:"★" },
-                { label:"Progress", value:`${overallPct}%`, color:C.purple, icon:"🗺️" },
-                { label:"Streak", value:`${streak} day${streak!==1?"s":""}`, color:"#f472b6", icon:"🔥" },
-                { label:"Badges", value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold, icon:"🏆" },
+                { label:"Questions", value:totalQuestions.toLocaleString(), color:C.gold,    icon:"/icon-questions.png" },
+                { label:"Mastered",  value:`${masteredCount}/${flatLevels.length}`,  color:C.green,   icon:"/icon-mastered.png" },
+                { label:"Progress",  value:`${overallPct}%`,                         color:C.purple,  icon:"/icon-progress.png" },
+                { label:"Streak",    value:`${streak} day${streak!==1?"s":""}`,      color:"#f472b6", icon:"/icon-streak.png" },
+                { label:"Badges",    value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold, icon:"/icon-badges.png" },
               ].map(({ label, value, color, icon }) => (
                 <div key={label} style={{ background:"rgba(255,255,255,0.04)", border:`2px solid ${C.border}`, padding:"10px 12px", position:"relative", overflow:"hidden" }}>
-                  <div style={{ position:"absolute", top:8, right:10, fontSize:20, opacity:0.25 }}>{icon}</div>
+                  <img src={icon} alt="" style={{ position:"absolute", top:6, right:8, width:24, height:24, imageRendering:"pixelated", opacity:0.5 }} />
                   <div style={{ fontSize:9, color:C.textDim, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{label}</div>
                   <div style={{ fontSize:18, fontWeight:900, color, marginTop:3 }}>{value}</div>
                 </div>
@@ -1956,8 +1956,18 @@ export default function App() {
 
         {/* ── Tabs ── */}
         <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
-          {[["dashboard","★ Quest"],["journey","🗺 Journey"],["badges","🏆 Trophies"],["history","📜 History"],["settings","⚙ Settings"]].map(([id,label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} className="fun-btn" style={S.tab(activeTab===id)}>{label}</button>
+          {[
+            ["dashboard","Quest",    "/tab-quest.png"],
+            ["journey",  "Journey",  "/tab-journey.png"],
+            ["badges",   "Trophies", "/tab-trophies.png"],
+            ["history",  "History",  "/tab-history.png"],
+            ["settings", "Settings", "/tab-settings.png"],
+          ].map(([id, label, icon]) => (
+            <button key={id} onClick={() => setActiveTab(id)} className="fun-btn"
+              style={{ ...S.tab(activeTab===id), display:"flex", alignItems:"center", gap:6 }}>
+              <img src={icon} alt="" style={{ width:16, height:16, imageRendering:"pixelated", flexShrink:0 }} />
+              {label}
+            </button>
           ))}
         </div>
 
