@@ -519,10 +519,15 @@ function LandingPage({ onStart, onReturn }) {
                       filter:`drop-shadow(0 0 ${hovered ? 14 : 8}px ${ch.color}${hovered ? "bb" : "66"})`,
                       transition:"filter 0.15s ease" }} />
                   <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
-                  <div style={{ fontSize:11, fontWeight:700, marginTop:4, lineHeight:1.5,
-                    color: hovered ? text : textSub,
-                    transition:"color 0.15s ease" }}>
-                    {hovered ? ch.hover : ch.desc}
+                  <div style={{ position:"relative", marginTop:4, height:60 }}>
+                    <div style={{ position:"absolute", inset:0, fontSize:11, fontWeight:700, lineHeight:1.5,
+                      color:textSub, opacity: hovered ? 0 : 1, transition:"opacity 0.2s ease" }}>
+                      {ch.desc}
+                    </div>
+                    <div style={{ position:"absolute", inset:0, fontSize:10, fontWeight:700, lineHeight:1.5,
+                      color:text, opacity: hovered ? 1 : 0, transition:"opacity 0.2s ease" }}>
+                      {ch.hover}
+                    </div>
                   </div>
                 </div>
               );
