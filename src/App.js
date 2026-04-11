@@ -440,47 +440,51 @@ function LandingPage({ onStart, onReturn }) {
     <div style={{ background:bg, color:text, fontFamily:"'Nunito', sans-serif", overflowX:"hidden" }}>
 
       {/* ── HERO ── */}
-      <div style={{ position:"relative", minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center",
-        backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", padding:24 }}>
-        <div style={{ position:"absolute", inset:0, background:"rgba(13,10,26,0.78)" }} />
-        <div style={{ position:"relative", textAlign:"center", maxWidth:680 }}>
+      <div style={{ position:"relative", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover",
+        backgroundPosition:"center top", padding:"56px 24px 48px" }}>
+        <div style={{ position:"absolute", inset:0, background:"rgba(13,10,26,0.80)" }} />
+        <div style={{ position:"relative", textAlign:"center", maxWidth:640, margin:"0 auto" }}>
           <img src="/logo-crest.png" alt="Get Maths Mastery crest"
-            style={{ imageRendering:"pixelated", width:96, height:96, marginBottom:16,
-              filter:"drop-shadow(0 0 20px rgba(251,191,36,0.5))" }} />
-          <div style={{ fontFamily:PX, fontSize:10, color:textSub, letterSpacing:3, marginBottom:10, lineHeight:2 }}>
+            style={{ imageRendering:"pixelated", width:72, height:72, marginBottom:12,
+              filter:"drop-shadow(0 0 16px rgba(251,191,36,0.5))" }} />
+          <div style={{ fontFamily:PX, fontSize:8, color:textSub, letterSpacing:3, marginBottom:10, lineHeight:2 }}>
             FREE · NO ADS · NO SUBSCRIPTION
           </div>
-          <h1 style={{ fontFamily:PX, fontSize:22, color:gold, lineHeight:1.6, marginBottom:8,
-            textShadow:"0 0 32px rgba(251,191,36,0.7), 0 0 64px rgba(251,191,36,0.3)" }}>
+          <h1 style={{ fontFamily:PX, fontSize:18, color:gold, lineHeight:1.7, marginBottom:10,
+            textShadow:"0 0 24px rgba(251,191,36,0.7), 0 0 48px rgba(251,191,36,0.3)" }}>
             Get Maths<br/>Mastery
           </h1>
-          <p style={{ fontSize:18, fontWeight:800, color:text, lineHeight:1.7, marginBottom:8 }}>
+          <p style={{ fontSize:17, fontWeight:800, color:text, lineHeight:1.6, marginBottom:8 }}>
             The RPG maths app that turns practice into an adventure.
           </p>
-          <p style={{ fontSize:14, color:textSub, fontWeight:700, lineHeight:1.7, marginBottom:32, maxWidth:480, margin:"0 auto 32px" }}>
+          <p style={{ fontSize:13, color:textSub, fontWeight:700, lineHeight:1.7, marginBottom:28, maxWidth:460, margin:"0 auto 28px" }}>
             Science-backed methodology. AI-powered hints. 40+ badges to earn.
             Built for KS1 &amp; KS2 children who want to level up.
           </p>
-          <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
+          <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap", marginBottom:24 }}>
             <button onClick={onStart} style={{ border:`4px solid ${gold}`, background:gold, color:"#111",
-              fontFamily:PX, fontSize:10, padding:"16px 28px", cursor:"pointer",
-              boxShadow:`6px 6px 0 #92400e`, lineHeight:1.8, transition:"transform 0.07s" }}
+              fontFamily:PX, fontSize:10, padding:"14px 24px", cursor:"pointer",
+              boxShadow:`5px 5px 0 #92400e`, lineHeight:1.8 }}
               onMouseEnter={e=>e.target.style.transform="translate(2px,2px)"}
               onMouseLeave={e=>e.target.style.transform=""}>
               Start Free →
             </button>
             <button onClick={onReturn} style={{ border:`4px solid ${border}`, background:"rgba(255,255,255,0.07)", color:text,
-              fontFamily:PX, fontSize:10, padding:"16px 28px", cursor:"pointer",
-              boxShadow:`6px 6px 0 #06030f`, lineHeight:1.8 }}>
+              fontFamily:PX, fontSize:10, padding:"14px 24px", cursor:"pointer",
+              boxShadow:`5px 5px 0 #06030f`, lineHeight:1.8 }}>
               I have a PIN
             </button>
           </div>
-          <div style={{ marginTop:40, display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", justifyContent:"center", gap:20, flexWrap:"wrap", marginBottom:32 }}>
             {["KS1 & KS2","36 Levels","AI Hints","Free Forever"].map(t => (
               <div key={t} style={{ fontSize:12, fontWeight:800, color:textSub, display:"flex", alignItems:"center", gap:6 }}>
                 <span style={{ color:gold }}>★</span> {t}
               </div>
             ))}
+          </div>
+          {/* scroll nudge */}
+          <div style={{ fontSize:11, color:`${textSub}88`, fontWeight:700, letterSpacing:2 }}>
+            ↓ &nbsp; scroll to explore
           </div>
         </div>
       </div>
