@@ -124,5 +124,15 @@ body {
 /* ── Input focus glow ── */
 input:focus {
   outline: none !important;
-  box-shadow: 0 0 0 2px rgba(251,191,36,0.4) !important;
+  box-shadow: 0 0 0 3px rgba(251,191,36,0.5), 0 0 12px rgba(251,191,36,0.2) !important;
+  border-color: #fbbf24 !important;
 }
+
+/* ── Coin rise animation ── */
+@keyframes coin-rise {
+  0%   { transform: translateX(-50%) translateY(0);   opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-36px); opacity: 0; }
+}
+
+/* ── Input placeholder ── */
+input::placeholder { color: #4a3668; font-weight: 700; }

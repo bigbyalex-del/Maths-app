@@ -897,6 +897,9 @@ export default function App() {
   const [goalAssessment, setGoalAssessment] = useState(null);
   const [goalLoading, setGoalLoading] = useState(false);
   const [showLevelDetails, setShowLevelDetails] = useState(false);
+  const [sessionCoins, setSessionCoins] = useState(0);
+  const [coinPop, setCoinPop] = useState(null); // index of card that just earned a coin
+  const [mascotState, setMascotState] = useState("focus"); // focus | happy | celebrate
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -1106,11 +1109,24 @@ export default function App() {
     setLastResult(null);
     setHints({});
     setDailyAnswer("");
+    setSessionCoins(0);
+    setCoinPop(null);
+    setMascotState("focus");
     setTimeout(() => focusQuestion(0), 0);
   }
 
   function lockAnswer(i) {
     setLockedAnswers(prev => new Set([...prev, i]));
+    // Award coin if correct
+    const val = answers[i] || "";
+    const p = problems[i];
+    if (p && val !== "" && normalizeAnswer(val) === normalizeAnswer(p.answer)) {
+      setSessionCoins(c => c + 1);
+      setCoinPop(i);
+      setMascotState("celebrate");
+      setTimeout(() => { setCoinPop(null); setMascotState("happy"); }, 600);
+      setTimeout(() => setMascotState("focus"), 2000);
+    }
   }
 
   function loadCustomPack(questions, label) {
@@ -1588,70 +1604,93 @@ export default function App() {
               const pageStart = currentPage * PAGE_SIZE;
               const pageProblems = problems.slice(pageStart, pageStart + PAGE_SIZE);
               const pageAllLocked = pageProblems.every((_, j) => lockedAnswers.has(pageStart + j));
-              // Count correct among locked questions on this page
               const pageLocked = pageProblems.filter((_, j) => lockedAnswers.has(pageStart + j)).length;
               const pageCorrect = pageProblems.filter((p, j) => {
                 const val = answers[pageStart + j] || "";
                 return lockedAnswers.has(pageStart + j) && normalizeAnswer(val) === normalizeAnswer(p.answer);
               }).length;
+              const questTarget = Math.round(PAGE_SIZE * ACCURACY_THRESHOLD / 100); // e.g. 11 of 12
 
               return (
                 <div style={S.card}>
-                  {/* Page header row */}
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, marginBottom:12 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                      {/* Timer: shown live only in speed phase */}
-                      {isSpeedPhase ? (
-                        <div style={{ background:C.bgAlt, color:timerColor, padding:"8px 14px", border:`4px solid ${timerColor}40`, fontFamily:PX, fontSize:15, lineHeight:1.4, minWidth:84, textAlign:"center", boxShadow:`0 0 12px ${timerColor}30` }}>
-                          {formatTime(time)}
-                        </div>
-                      ) : (
-                        <div style={{ background:C.bgAlt, color:C.textDim, padding:"8px 14px", border:`2px solid ${C.border}`, fontFamily:PX, fontSize:10, lineHeight:1.6 }}>
-                          Focus on accuracy
-                        </div>
-                      )}
-                      {isSpeedPhase && time > 0 && (
-                        <div style={{ fontSize:12, fontWeight:800, color:timerColor }}>
-                          {time <= currentLevel.masteryTime ? `${currentLevel.masteryTime - time}s left` : `${time - currentLevel.masteryTime}s over`}
-                        </div>
-                      )}
-                    </div>
-                    <button onClick={startSession} className="fun-btn" style={S.btn("#6b7280","#374151")}>Restart</button>
-                  </div>
 
-                  {/* Page progress indicator */}
-                  <div style={{ marginBottom:12 }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-                      <div style={{ display:"flex", gap:6 }}>
-                        {Array.from({ length: totalPages }, (_, p) => (
-                          <div key={p} style={{ padding:"3px 10px", fontFamily:PX, fontSize:7, lineHeight:1.8,
-                            background: p < currentPage ? C.greenBg : p === currentPage ? C.bgCard : C.bgAlt,
-                            color: p < currentPage ? C.green : p === currentPage ? C.gold : C.textDim,
-                            border: `2px solid ${p < currentPage ? C.green : p === currentPage ? C.gold : C.border}` }}>
-                            {p < currentPage ? "✓" : `Page ${p+1}`}
-                          </div>
-                        ))}
+                  {/* ── Game HUD bar ── */}
+                  <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap", marginBottom:14,
+                    padding:"10px 14px", background:C.bgAlt, border:`2px solid ${C.border}`,
+                    borderBottom:`3px solid ${C.gold}30` }}>
+
+                    {/* Mascot */}
+                    <img src="/maths-master.png" alt=""
+                      className={`mascot-${mascotState}`}
+                      style={{ imageRendering:"pixelated", width:40, height:40, objectFit:"contain",
+                        filter:`drop-shadow(0 0 6px ${mascotState==="celebrate"?C.gold:C.purple}44)` }} />
+
+                    {/* Coin counter */}
+                    <div style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px",
+                      background:"#1a1035", border:`2px solid ${C.gold}`, minWidth:70 }}>
+                      <span style={{ fontSize:16 }}>🪙</span>
+                      <span style={{ fontFamily:PX, fontSize:11, color:C.gold, lineHeight:1.4 }}>{sessionCoins}</span>
+                    </div>
+
+                    {/* Timer */}
+                    {isSpeedPhase ? (
+                      <div style={{ background:C.bgCard, color:timerColor, padding:"5px 12px", border:`3px solid ${timerColor}60`,
+                        fontFamily:PX, fontSize:13, lineHeight:1.4, minWidth:72, textAlign:"center",
+                        boxShadow:`0 0 10px ${timerColor}30` }}>
+                        {formatTime(time)}
+                        {time > 0 && <div style={{ fontSize:7, color:timerColor, marginTop:1 }}>
+                          {time <= currentLevel.masteryTime ? `${currentLevel.masteryTime-time}s left` : `${time-currentLevel.masteryTime}s over`}
+                        </div>}
                       </div>
-                      <span style={{ fontSize:12, fontWeight:800, color:C.textSub }}>
-                        Q{pageStart + 1}–{pageStart + PAGE_SIZE}
-                      </span>
-                    </div>
-                    {/* Progress bar across all pages */}
-                    <div style={{ width:"100%", height:8, background:C.bgAlt, border:`2px solid ${C.border}`, overflow:"hidden" }}>
-                      <div style={{ width:`${(currentPage / totalPages) * 100}%`, height:"100%", background:C.gold, transition:"width 0.5s ease" }} />
-                    </div>
-                  </div>
+                    ) : (
+                      <div style={{ padding:"5px 12px", background:C.bgCard, border:`2px solid ${C.border}`,
+                        fontFamily:PX, fontSize:8, color:C.textDim, lineHeight:1.6 }}>
+                        Accuracy Mode
+                      </div>
+                    )}
 
-                  {/* Per-page live accuracy (shows after first lock) */}
-                  {pageLocked > 0 && (
-                    <div style={{ marginBottom:12 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontWeight:700, marginBottom:3, color:C.textSub }}>
-                        <span>{pageCorrect} correct of {pageLocked} answered</span>
-                        <span style={{ color: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? C.green : (pageCorrect/pageLocked)*100 >= 80 ? C.gold : C.red }}>
-                          {Math.round((pageCorrect / pageLocked) * 100)}%
+                    {/* Quest goal progress */}
+                    <div style={{ flex:1, minWidth:120 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, fontWeight:800,
+                        color:C.textSub, marginBottom:3 }}>
+                        <span>⚔ Quest: {pageCorrect}/{questTarget} correct</span>
+                        <span style={{ color: pageCorrect >= questTarget ? C.green : C.textDim }}>
+                          {pageCorrect >= questTarget ? "✓ Goal reached!" : `${questTarget - pageCorrect} to go`}
                         </span>
                       </div>
-                      <div style={{ width:"100%", height:10, background:C.bgAlt, border:`2px solid ${C.border}`, overflow:"hidden" }}>
+                      <div style={{ height:6, background:C.bgFlat, border:`1px solid ${C.border}`, overflow:"hidden" }}>
+                        <div style={{ width:`${Math.min((pageCorrect/questTarget)*100, 100)}%`, height:"100%",
+                          background: pageCorrect >= questTarget ? C.green : C.gold,
+                          transition:"width 0.3s ease", boxShadow: pageCorrect >= questTarget ? `0 0 8px ${C.green}` : "none" }} />
+                      </div>
+                    </div>
+
+                    {/* Page tabs + restart */}
+                    <div style={{ display:"flex", gap:5, alignItems:"center", marginLeft:"auto" }}>
+                      {Array.from({ length: totalPages }, (_, pg) => (
+                        <div key={pg} style={{ padding:"3px 8px", fontFamily:PX, fontSize:7, lineHeight:1.8,
+                          background: pg < currentPage ? C.greenBg : pg === currentPage ? C.bgCard : C.bgAlt,
+                          color: pg < currentPage ? C.green : pg === currentPage ? C.gold : C.textDim,
+                          border: `2px solid ${pg < currentPage ? C.green : pg === currentPage ? C.gold : C.border}` }}>
+                          {pg < currentPage ? "✓" : pg+1}
+                        </div>
+                      ))}
+                      <button onClick={startSession} className="fun-btn"
+                        style={{ border:`2px solid ${C.border}`, padding:"4px 10px", cursor:"pointer",
+                          fontFamily:PX, fontSize:7, lineHeight:1.8, background:C.bgAlt, color:C.textDim, boxShadow:SD }}>↺</button>
+                    </div>
+                  </div>
+
+                  {/* Per-page live accuracy bar (shows after first answer) */}
+                  {pageLocked > 0 && (
+                    <div style={{ marginBottom:10 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, fontWeight:700, marginBottom:3, color:C.textSub }}>
+                        <span>{pageCorrect} correct · {pageLocked} answered</span>
+                        <span style={{ color: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? C.green : (pageCorrect/pageLocked)*100 >= 80 ? C.gold : C.red, fontFamily:PX, fontSize:9 }}>
+                          {Math.round((pageCorrect/pageLocked)*100)}%
+                        </span>
+                      </div>
+                      <div style={{ width:"100%", height:8, background:C.bgAlt, border:`2px solid ${C.border}`, overflow:"hidden" }}>
                         <div style={{ width:`${(pageCorrect/pageLocked)*100}%`, height:"100%",
                           background: (pageCorrect/pageLocked)*100 >= ACCURACY_THRESHOLD ? C.green : (pageCorrect/pageLocked)*100 >= 80 ? C.gold : C.red,
                           transition:"width 0.25s" }} />
@@ -1661,13 +1700,14 @@ export default function App() {
 
                   {/* Review notice */}
                   {isSpeedPhase && masteredIds.length >= 1 && pageProblems.some(p => p.isReview) && (
-                    <div style={{ marginBottom:10, fontSize:12, color:C.textSub, fontWeight:700, padding:"6px 10px", background:C.bgFlat, border:`2px solid ${C.border}` }}>
+                    <div style={{ marginBottom:10, fontSize:11, color:C.textSub, fontWeight:700, padding:"5px 10px",
+                      background:C.bgFlat, border:`2px solid ${C.border}` }}>
                       ♻️ Includes review questions from previous levels.
                     </div>
                   )}
 
-                  {/* Question grid — current page only, 6 columns = 2 full rows of 6 */}
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:9 }}>
+                  {/* Question grid — 6 columns = 2 clean rows */}
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
                     {pageProblems.map((p, j) => {
                       const i = pageStart + j;
                       const val = answers[i] || "";
@@ -1675,24 +1715,33 @@ export default function App() {
                       const correct = locked && normalizeAnswer(val) === normalizeAnswer(p.answer);
                       const wrong = locked && !correct;
                       const live = !locked && val !== "" && normalizeAnswer(val) === normalizeAnswer(p.answer);
+                      const justEarned = coinPop === i;
                       return (
-                        <div key={`${currentLevelId}-${i}`} className={correct||live?"correct-card":""} style={{ ...S.qCard(correct,wrong,live), outline: p.isReview ? `2px dashed ${C.purple}` : "none" }}>
-                          {p.isReview && <div style={{ fontSize:7, color:C.purple, fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>Review</div>}
-                          <div style={{ fontSize:7, color:C.textDim, fontFamily:PX, marginBottom:3, lineHeight:1.6 }}>Q{i+1}</div>
-                          <div style={{ fontSize:15, fontWeight:900, display:"flex", alignItems:"center", gap:3, flexWrap:"wrap" }}>
-                            <span>{p.a} {p.op} {p.b} =</span>
+                        <div key={`${currentLevelId}-${i}`}
+                          className={correct||live?"correct-card":""}
+                          style={{ ...S.qCard(correct,wrong,live),
+                            outline: p.isReview ? `2px dashed ${C.purple}` : "none",
+                            transform: justEarned ? "scale(1.04)" : "scale(1)",
+                            transition:"transform 0.15s" }}>
+
+                          {/* Q number */}
+                          <div style={{ fontSize:8, color:C.textSub, fontFamily:PX, marginBottom:4, lineHeight:1.4 }}>Q{i+1}</div>
+
+                          {/* Equation + input */}
+                          <div style={{ fontSize:14, fontWeight:900, display:"flex", alignItems:"center", gap:3 }}>
+                            <span style={{ color:C.text, whiteSpace:"nowrap" }}>{p.a} {p.op} {p.b} =</span>
                             <input
                               ref={el => { inputRefs.current[i] = el; }}
                               value={val}
                               inputMode="decimal"
                               disabled={locked}
+                              placeholder="?"
                               onFocus={() => markQuestionStart(i)}
                               onChange={e => {
                                 if (locked) return;
                                 const cleaned = e.target.value.replace(/[^0-9./-]/g, "");
                                 setAnswers(prev => ({ ...prev, [i]: cleaned }));
                                 captureQuestionTiming(i, cleaned);
-                                // Auto-advance + lock when answer is long enough
                                 if (normalizeAnswer(cleaned).length >= normalizeAnswer(p.answer).length && cleaned.length > 0) {
                                   lockAnswer(i);
                                   const pageEnd = pageStart + PAGE_SIZE - 1;
@@ -1712,28 +1761,52 @@ export default function App() {
                               style={{ ...S.inp(live, correct, wrong), opacity: locked ? 0.85 : 1 }}
                             />
                           </div>
+
+                          {/* Live correct pre-lock burst */}
+                          {live && (
+                            <div style={{ position:"absolute", top:3, right:5, animation:"emoji-pop 0.3s cubic-bezier(.34,1.56,.64,1) both", fontSize:14 }}>⚡</div>
+                          )}
+
+                          {/* Coin earn animation */}
+                          {justEarned && (
+                            <div style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)",
+                              animation:"coin-rise 0.6s ease-out both", fontSize:16, pointerEvents:"none" }}>🪙</div>
+                          )}
+
+                          {/* Locked star */}
                           {locked && correct && (
-                            <div style={{ position:"absolute", top:4, right:6, animation:"emoji-pop 0.4s cubic-bezier(.34,1.56,.64,1) both" }}>
-                              <StarSVG size={18} color="#f59e0b" />
+                            <div style={{ position:"absolute", top:3, right:5, animation:"emoji-pop 0.4s cubic-bezier(.34,1.56,.64,1) both" }}>
+                              <StarSVG size={16} color="#f59e0b" />
                             </div>
                           )}
                           {locked && wrong && val === "" && (
-                            <div style={{ position:"absolute", top:4, right:6, fontSize:14 }}>—</div>
+                            <div style={{ position:"absolute", top:3, right:5, fontSize:12, color:C.textDim }}>—</div>
                           )}
-                          {locked && <div style={{ marginTop:4, fontSize:11, color: correct?C.green:C.red, fontWeight:700 }}>{correct ? "✓" : `✗ ${p.answer}`}</div>}
+
+                          {/* Result feedback */}
+                          {locked && (
+                            <div style={{ marginTop:3, fontSize:11, color: correct?C.green:C.red, fontWeight:800,
+                              display:"flex", alignItems:"center", gap:3 }}>
+                              {correct ? "✓" : `✗ ${p.answer}`}
+                            </div>
+                          )}
+
+                          {/* AI Hint button */}
                           {locked && wrong && !hints[i] && (
-                            <button
-                              onClick={() => fetchHint(i, p, val)}
-                              style={{ marginTop:5, fontSize:10, padding:"2px 8px", background:C.bgFlat, border:`1.5px solid ${C.gold}`, cursor:"pointer", fontWeight:700, color:C.gold }}
-                            >
+                            <button onClick={() => fetchHint(i, p, val)}
+                              style={{ marginTop:4, fontSize:9, padding:"2px 6px", background:C.bgFlat,
+                                border:`1.5px solid ${C.gold}`, cursor:"pointer", fontWeight:700, color:C.gold }}>
                               💡 Hint
                             </button>
                           )}
                           {locked && wrong && hints[i] && (
-                            <div style={{ marginTop:5, fontSize:10, color:C.textSub, lineHeight:1.5, fontStyle:"italic" }}>
-                              {hints[i].loading ? "thinking…" : hints[i].text}
+                            <div style={{ marginTop:4, fontSize:9, color:C.textSub, lineHeight:1.4, fontStyle:"italic" }}>
+                              {hints[i].loading ? "…" : hints[i].text}
                             </div>
                           )}
+
+                          {/* Review tag */}
+                          {p.isReview && <div style={{ position:"absolute", bottom:3, left:5, fontSize:6, color:C.purple, fontFamily:PX }}>♻</div>}
                         </div>
                       );
                     })}
