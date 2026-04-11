@@ -869,6 +869,7 @@ export default function App() {
   const [answers, setAnswers] = useState({});
   const [lockedAnswers, setLockedAnswers] = useState(new Set()); // indices locked after first entry
   const [currentPage, setCurrentPage] = useState(0); // 0, 1, 2
+  const [hints, setHints] = useState({}); // { [i]: { loading: bool, text: string|null } }
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -1039,11 +1040,31 @@ export default function App() {
     setRunning(false);
     setShowCelebration(false);
     setLastResult(null);
+    setHints({});
     setTimeout(() => focusQuestion(0), 0);
   }
 
   function lockAnswer(i) {
     setLockedAnswers(prev => new Set([...prev, i]));
+  }
+
+  async function fetchHint(i, p, userAnswer) {
+    setHints(prev => ({ ...prev, [i]: { loading: true, text: null } }));
+    try {
+      const res = await fetch("/.netlify/functions/hint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: `${p.a} ${p.op} ${p.b}`,
+          wrongAnswer: userAnswer,
+          correctAnswer: p.answer,
+        }),
+      });
+      const data = await res.json();
+      setHints(prev => ({ ...prev, [i]: { loading: false, text: data.hint || "Keep trying! 💪" } }));
+    } catch {
+      setHints(prev => ({ ...prev, [i]: { loading: false, text: "Keep trying — you can do it! 💪" } }));
+    }
   }
 
   function submitCurrentPage() {
@@ -1463,6 +1484,19 @@ export default function App() {
                             <div style={{ position:"absolute", top:4, right:6, fontSize:14 }}>—</div>
                           )}
                           {locked && <div style={{ marginTop:4, fontSize:11, color: correct?"#16a34a":"#ef4444", fontWeight:700 }}>{correct ? "✓" : `✗ ${p.answer}`}</div>}
+                          {locked && wrong && !hints[i] && (
+                            <button
+                              onClick={() => fetchHint(i, p, val)}
+                              style={{ marginTop:5, fontSize:10, padding:"2px 8px", background:"#fef9c3", border:"1.5px solid #fbbf24", borderRadius:6, cursor:"pointer", fontWeight:700, color:"#92400e" }}
+                            >
+                              💡 Hint
+                            </button>
+                          )}
+                          {locked && wrong && hints[i] && (
+                            <div style={{ marginTop:5, fontSize:10, color:"#4b5563", lineHeight:1.5, fontStyle:"italic" }}>
+                              {hints[i].loading ? "thinking…" : hints[i].text}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
