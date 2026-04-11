@@ -136,3 +136,22 @@ input:focus {
 
 /* ── Input placeholder ── */
 input::placeholder { color: #4a3668; font-weight: 700; }
+
+/* ── Character card hover (pure CSS — avoids React re-render flicker) ── */
+.char-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  cursor: default;
+}
+.char-card:hover {
+  transform: scale(1.08) translateY(-4px);
+}
+.char-card .char-img {
+  transition: filter 0.18s ease;
+}
+.char-card:hover .char-img {
+  filter: var(--char-glow-hover) !important;
+}
+.char-card .char-desc { opacity: 1; transition: opacity 0.15s ease; }
+.char-card .char-hover-desc { opacity: 0; transition: opacity 0.15s ease; }
+.char-card:hover .char-desc { opacity: 0; }
+.char-card:hover .char-hover-desc { opacity: 1; }

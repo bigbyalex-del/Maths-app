@@ -387,7 +387,6 @@ function buildPlacementProgress(placedLevelId) {
 
 // ── LandingPage ───────────────────────────────────────────────────────────────
 function LandingPage({ onStart, onReturn }) {
-  const [hoveredChar, setHoveredChar] = React.useState(null);
   const PX = "'Press Start 2P', monospace";
   const bg = "#0d0a1a";
   const bgAlt = "#120e24";
@@ -515,38 +514,27 @@ function LandingPage({ onStart, onReturn }) {
             Every player picks a pixel art character at signup. Your hero reacts to correct answers and cheers you on through every level.
           </p>
           <div style={{ display:"flex", justifyContent:"center", gap:16, flexWrap:"wrap" }}>
-            {CHARACTERS.map(ch => {
-              const hovered = hoveredChar === ch.id;
-              return (
-                <div key={ch.id}
-                  onMouseEnter={() => setHoveredChar(ch.id)}
-                  onMouseLeave={() => setHoveredChar(null)}
-                  style={{ textAlign:"center", padding:"16px 12px",
-                    border:`3px solid ${hovered ? ch.color : border}`,
-                    background: hovered ? `${ch.color}14` : bg,
-                    width:140, boxSizing:"border-box", cursor:"default",
-                    boxShadow: hovered ? `0 0 20px ${ch.color}44, 4px 4px 0 #06030f` : "4px 4px 0 #06030f",
-                    transform: hovered ? "scale(1.08) translateY(-4px)" : "scale(1)",
-                    transition:"transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease" }}>
-                  <img src={`/char-${ch.id}.png`} alt={ch.label}
-                    style={{ imageRendering:"pixelated", width:80, height:80,
-                      display:"block", margin:"0 auto 8px",
-                      filter:`drop-shadow(0 0 ${hovered ? 14 : 8}px ${ch.color}${hovered ? "bb" : "66"})`,
-                      transition:"filter 0.15s ease" }} />
-                  <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
-                  <div style={{ position:"relative", marginTop:4, height:60 }}>
-                    <div style={{ position:"absolute", inset:0, fontSize:11, fontWeight:700, lineHeight:1.5,
-                      color:textSub, opacity: hovered ? 0 : 1, transition:"opacity 0.2s ease" }}>
-                      {ch.desc}
-                    </div>
-                    <div style={{ position:"absolute", inset:0, fontSize:10, fontWeight:700, lineHeight:1.5,
-                      color:text, opacity: hovered ? 1 : 0, transition:"opacity 0.2s ease" }}>
-                      {ch.hover}
-                    </div>
+            {CHARACTERS.map(ch => (
+              <div key={ch.id} className="char-card"
+                style={{ textAlign:"center", padding:"16px 12px", width:140, boxSizing:"border-box",
+                  border:`3px solid ${ch.color}55`, background:bg,
+                  boxShadow:`4px 4px 0 #06030f, 0 0 12px ${ch.color}22`,
+                  "--char-glow-hover": `drop-shadow(0 0 14px ${ch.color}bb)` }}>
+                <img src={`/char-${ch.id}.png`} alt={ch.label} className="char-img"
+                  style={{ imageRendering:"pixelated", width:80, height:80,
+                    display:"block", margin:"0 auto 8px",
+                    filter:`drop-shadow(0 0 8px ${ch.color}66)` }} />
+                <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
+                <div style={{ position:"relative", marginTop:4, height:60 }}>
+                  <div className="char-desc" style={{ position:"absolute", inset:0, fontSize:11, fontWeight:700, lineHeight:1.5, color:textSub }}>
+                    {ch.desc}
+                  </div>
+                  <div className="char-hover-desc" style={{ position:"absolute", inset:0, fontSize:10, fontWeight:700, lineHeight:1.5, color:text }}>
+                    {ch.hover}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </Section>
       </div>
