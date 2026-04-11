@@ -423,12 +423,12 @@ function LandingPage({ onStart, onReturn }) {
   ];
 
   const features = [
-    { icon:"🤖", title:"AI Hint System",       body:"Claude AI gives personalised hints — never just the answer. Teaches children how to think, not just what to write.", color:"#7c3aed" },
-    { icon:"🏆", title:"40+ Badges & Trophies", body:"From 'First Step' to 'Grandmaster' — a full progression system that keeps children motivated and proud.", color:"#f59e0b" },
-    { icon:"🔥", title:"Daily Streaks & Coins", body:"Built-in habit loop. Coins for every correct answer, streaks for daily practice, daily bonus quest to beat.", color:"#ef4444" },
-    { icon:"📊", title:"Parent Dashboard",      body:"AI progress reports, goal tracking, session history and a goal-check feature so parents stay fully in the loop.", color:"#06b6d4" },
-    { icon:"📸", title:"Homework Scanner",      body:"Photograph any worksheet and the app turns it into interactive practice — perfect for school homework nights.", color:"#22c55e" },
-    { icon:"🗺 ", title:"36-Level Journey",      body:"From +1 facts all the way to mixed multiplication and division — a complete KS1 & KS2 journey mapped out.", color:"#f97316" },
+    { icon:"/feat-ai-hint.png",   title:"AI Hint System",        body:"Claude AI gives personalised hints — never just the answer. Teaches children how to think, not just what to write.", color:"#7c3aed" },
+    { icon:"/feat-badges.png",    title:"40+ Badges & Trophies", body:"From 'First Step' to 'Grandmaster' — a full progression system that keeps children motivated and proud.", color:"#f59e0b" },
+    { icon:"/feat-streaks.png",   title:"Daily Streaks & Coins", body:"Built-in habit loop. Coins for every correct answer, streaks for daily practice, daily bonus quest to beat.", color:"#ef4444" },
+    { icon:"/feat-parent.png",    title:"Parent Dashboard",      body:"AI progress reports, goal tracking, session history and a goal-check feature so parents stay fully in the loop.", color:"#06b6d4" },
+    { icon:"/feat-homework.png",  title:"Homework Scanner",      body:"Photograph any worksheet and the app turns it into interactive practice — perfect for school homework nights.", color:"#22c55e" },
+    { icon:"/feat-journey.png",   title:"36-Level Journey",      body:"From +1 facts all the way to mixed multiplication and division — a complete KS1 & KS2 journey mapped out.", color:"#f97316" },
   ];
 
   const steps = [
@@ -552,7 +552,8 @@ function LandingPage({ onStart, onReturn }) {
             {features.map(f => (
               <div key={f.title} style={{ background:bg, border:`3px solid ${border}`,
                 boxShadow:`4px 4px 0 #06030f`, padding:24, display:"flex", gap:16, alignItems:"flex-start" }}>
-                <div style={{ fontSize:28, flexShrink:0, lineHeight:1 }}>{f.icon}</div>
+                <img src={f.icon} alt="" style={{ width:40, height:40, imageRendering:"pixelated", flexShrink:0,
+                  filter:`drop-shadow(0 0 6px ${f.color}66)` }} />
                 <div>
                   <div style={{ fontFamily:PX, fontSize:9, color:f.color, lineHeight:1.8, marginBottom:6 }}>{f.title}</div>
                   <p style={{ fontSize:13, color:textSub, fontWeight:700, lineHeight:1.6, margin:0 }}>{f.body}</p>
