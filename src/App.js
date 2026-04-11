@@ -408,15 +408,15 @@ function LandingPage({ onStart, onReturn }) {
   );
 
   const methods = [
-    { icon:"🎯", title:"Accuracy First", sub:"Speed Second",
+    { icon:"/meth-accuracy.png", title:"Accuracy First", sub:"Speed Second",
       body:"Children master each concept at their own pace before any time pressure is introduced — matching the evidence-based Kumon and Singapore Maths methods.",
       science:"Research shows that drilling for speed before accuracy is cemented leads to maths anxiety. Our two-phase system ensures understanding comes first.",
       color:"#22c55e" },
-    { icon:"🔄", title:"Spaced Repetition", sub:"Never Forget",
+    { icon:"/meth-spaced.png", title:"Spaced Repetition", sub:"Never Forget",
       body:"Mastered topics are automatically reintroduced during later sessions so knowledge sticks in long-term memory — not just cramming for the next test.",
       science:"Spaced practice is one of the most replicated findings in cognitive science (Ebbinghaus, 1885 — Cepeda et al., 2006). We schedule review automatically.",
       color:"#3b82f6" },
-    { icon:"⚡", title:"Interleaved Practice", sub:"Mix It Up",
+    { icon:"/meth-interleaved.png", title:"Interleaved Practice", sub:"Mix It Up",
       body:"Questions from recently mastered levels are woven into each new session — proven to improve retention by up to 40% compared to blocked practice.",
       science:"Rohrer & Taylor (2007) found interleaved maths practice outperformed blocked practice on delayed tests by a significant margin.",
       color:"#a855f7" },
@@ -527,7 +527,7 @@ function LandingPage({ onStart, onReturn }) {
             {methods.map(m => (
               <div key={m.title} style={{ background:bgAlt, border:`3px solid ${border}`,
                 boxShadow:`4px 4px 0 #06030f`, padding:24 }}>
-                <div style={{ fontSize:32, marginBottom:12 }}>{m.icon}</div>
+                <img src={m.icon} alt="" style={{ width:40, height:40, imageRendering:"pixelated", marginBottom:12, filter:`drop-shadow(0 0 6px ${m.color}88)` }} />
                 <div style={{ fontFamily:PX, fontSize:10, color:m.color, lineHeight:1.8, marginBottom:4 }}>{m.title}</div>
                 <div style={{ fontSize:11, color:textSub, fontWeight:800, marginBottom:12 }}>{m.sub}</div>
                 <p style={{ fontSize:13, color:text, fontWeight:700, lineHeight:1.7, marginBottom:16 }}>{m.body}</p>
