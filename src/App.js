@@ -517,13 +517,15 @@ function LandingPage({ onStart, onReturn }) {
             {CHARACTERS.map(ch => (
               <div key={ch.id} className="char-card"
                 style={{ textAlign:"center", padding:"16px 12px", width:140, boxSizing:"border-box",
-                  border:`3px solid ${ch.color}55`, background:bg,
-                  boxShadow:`4px 4px 0 #06030f, 0 0 12px ${ch.color}22`,
-                  "--char-glow-hover": `drop-shadow(0 0 14px ${ch.color}bb)` }}>
+                  "--ch-color": ch.color,
+                  "--ch-dim": `${ch.color}55`,
+                  "--ch-bg": `${ch.color}14`,
+                  "--ch-glow": `${ch.color}55`,
+                  "--ch-filter-base": `drop-shadow(0 0 8px ${ch.color}66)`,
+                  "--ch-filter-hover": `drop-shadow(0 0 14px ${ch.color}bb)` }}>
                 <img src={`/char-${ch.id}.png`} alt={ch.label} className="char-img"
                   style={{ imageRendering:"pixelated", width:80, height:80,
-                    display:"block", margin:"0 auto 8px",
-                    filter:`drop-shadow(0 0 8px ${ch.color}66)` }} />
+                    display:"block", margin:"0 auto 8px" }} />
                 <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
                 <div style={{ position:"relative", marginTop:4, height:60 }}>
                   <div className="char-desc" style={{ position:"absolute", inset:0, fontSize:11, fontWeight:700, lineHeight:1.5, color:textSub }}>
