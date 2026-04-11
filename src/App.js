@@ -480,7 +480,7 @@ function LandingPage({ onStart, onReturn }) {
           <div style={{ display:"flex", justifyContent:"center", gap:20, flexWrap:"wrap", marginBottom:32 }}>
             {["KS1 & KS2","36 Levels","AI Hints","Free Forever"].map(t => (
               <div key={t} style={{ fontSize:12, fontWeight:800, color:textSub, display:"flex", alignItems:"center", gap:6 }}>
-                <img src="/star.png" alt="" style={{ width:16, height:16, imageRendering:"pixelated", flexShrink:0 }} /> {t}
+                <img src="/star.png" alt="" style={{ width:24, height:24, imageRendering:"pixelated", flexShrink:0 }} /> {t}
               </div>
             ))}
           </div>
@@ -550,7 +550,7 @@ function LandingPage({ onStart, onReturn }) {
             {methods.map(m => (
               <div key={m.title} style={{ background:bgAlt, border:`3px solid ${border}`,
                 boxShadow:`4px 4px 0 #06030f`, padding:24 }}>
-                <img src={m.icon} alt="" style={{ width:40, height:40, imageRendering:"pixelated", marginBottom:12, filter:`drop-shadow(0 0 6px ${m.color}88)` }} />
+                <img src={m.icon} alt="" style={{ width:56, height:56, imageRendering:"pixelated", marginBottom:14, filter:`drop-shadow(0 0 8px ${m.color}88)` }} />
                 <div style={{ fontFamily:PX, fontSize:10, color:m.color, lineHeight:1.8, marginBottom:4 }}>{m.title}</div>
                 <div style={{ fontSize:11, color:textSub, fontWeight:800, marginBottom:12 }}>{m.sub}</div>
                 <p style={{ fontSize:13, color:text, fontWeight:700, lineHeight:1.7, marginBottom:16 }}>{m.body}</p>
@@ -575,8 +575,8 @@ function LandingPage({ onStart, onReturn }) {
             {features.map(f => (
               <div key={f.title} style={{ background:bg, border:`3px solid ${border}`,
                 boxShadow:`4px 4px 0 #06030f`, padding:24, display:"flex", gap:16, alignItems:"flex-start" }}>
-                <img src={f.icon} alt="" style={{ width:40, height:40, imageRendering:"pixelated", flexShrink:0,
-                  filter:`drop-shadow(0 0 6px ${f.color}66)` }} />
+                <img src={f.icon} alt="" style={{ width:56, height:56, imageRendering:"pixelated", flexShrink:0,
+                  filter:`drop-shadow(0 0 8px ${f.color}88)` }} />
                 <div>
                   <div style={{ fontFamily:PX, fontSize:9, color:f.color, lineHeight:1.8, marginBottom:6 }}>{f.title}</div>
                   <p style={{ fontSize:13, color:textSub, fontWeight:700, lineHeight:1.6, margin:0 }}>{f.body}</p>
@@ -910,7 +910,7 @@ function SignupScreen({ onComplete, onBack }) {
                     boxShadow: character===ch.id?`0 0 12px ${ch.color}55`:"none",
                     transition:"all 0.15s" }}>
                   <img src={`/char-${ch.id}.png`} alt={ch.label}
-                    style={{ imageRendering:"pixelated", width:52, height:52, display:"block", margin:"0 auto 4px" }} />
+                    style={{ imageRendering:"pixelated", width:68, height:68, display:"block", margin:"0 auto 6px" }} />
                   <div style={{ fontSize:9, fontFamily:PX, color: character===ch.id?ch.color:"#c7d2fe", lineHeight:1.4 }}>{ch.label}</div>
                   <div style={{ fontSize:10, color:"#9ca3af", fontWeight:700, marginTop:2 }}>{ch.desc}</div>
                 </div>
@@ -1959,7 +1959,7 @@ export default function App() {
                 { label:"Badges",    value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold, icon:"/icon-badges.png" },
               ].map(({ label, value, color, icon }) => (
                 <div key={label} style={{ background:C.bgCard, border:`2px solid ${color}44`, padding:"10px 12px", position:"relative", overflow:"hidden", boxShadow:`0 0 12px ${color}22, inset 0 0 20px ${color}08` }}>
-                  <img src={icon} alt="" style={{ position:"absolute", top:6, right:8, width:24, height:24, imageRendering:"pixelated", opacity:0.4, filter:`drop-shadow(0 0 4px ${color})` }} />
+                  <img src={icon} alt="" style={{ position:"absolute", top:4, right:8, width:32, height:32, imageRendering:"pixelated", opacity:0.5, filter:`drop-shadow(0 0 6px ${color})` }} />
                   <div style={{ fontFamily:PX, fontSize:7, color:C.textDim, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</div>
                   <div style={{ fontFamily:PX, fontSize:11, color, marginTop:6, lineHeight:1.6, textShadow:`0 0 8px ${color}88` }}>{value}</div>
                 </div>
@@ -1989,7 +1989,7 @@ export default function App() {
           ].map(([id, label, icon]) => (
             <button key={id} onClick={() => setActiveTab(id)} className="fun-btn"
               style={{ ...S.tab(activeTab===id), display:"flex", alignItems:"center", gap:6 }}>
-              <img src={icon} alt="" style={{ width:16, height:16, imageRendering:"pixelated", flexShrink:0 }} />
+              <img src={icon} alt="" style={{ width:22, height:22, imageRendering:"pixelated", flexShrink:0 }} />
               {label}
             </button>
           ))}
@@ -2094,8 +2094,8 @@ export default function App() {
                       {/* Mascot — bigger, outside coin box */}
                       <img src={`/char-${profile.character||"mage"}.png`} alt=""
                         className={`mascot-${mascotState}`}
-                        style={{ imageRendering:"pixelated", width:56, height:56, objectFit:"contain", flexShrink:0,
-                          filter:`drop-shadow(0 0 8px ${mascotState==="celebrate"?C.gold+"99":C.purple+"55"})` }} />
+                        style={{ imageRendering:"pixelated", width:72, height:72, objectFit:"contain", flexShrink:0,
+                          filter:`drop-shadow(0 0 10px ${mascotState==="celebrate"?C.gold+"99":C.purple+"55"})` }} />
 
                       {/* Coin counter */}
                       <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 16px",
@@ -2697,7 +2697,7 @@ export default function App() {
                           boxShadow: profile.character===ch.id?`0 0 12px ${ch.color}55`:"none",
                           transition:"all 0.15s" }}>
                         <img src={`/char-${ch.id}.png`} alt={ch.label}
-                          style={{ imageRendering:"pixelated", width:52, height:52, display:"block", margin:"0 auto 4px" }} />
+                          style={{ imageRendering:"pixelated", width:68, height:68, display:"block", margin:"0 auto 6px" }} />
                         <div style={{ fontSize:10, fontWeight:900, color: profile.character===ch.id?ch.color:C.text }}>{ch.label}</div>
                       </div>
                     ))}
