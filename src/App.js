@@ -479,7 +479,7 @@ function LandingPage({ onStart, onReturn }) {
           <div style={{ display:"flex", justifyContent:"center", gap:20, flexWrap:"wrap", marginBottom:32 }}>
             {["KS1 & KS2","36 Levels","AI Hints","Free Forever"].map(t => (
               <div key={t} style={{ fontSize:12, fontWeight:800, color:textSub, display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ color:gold }}>★</span> {t}
+                <img src="/star.png" alt="" style={{ width:16, height:16, imageRendering:"pixelated", flexShrink:0 }} /> {t}
               </div>
             ))}
           </div>
