@@ -1955,8 +1955,8 @@ export default function App() {
               ].map(({ label, value, color, icon }) => (
                 <div key={label} style={{ background:"rgba(255,255,255,0.04)", border:`2px solid ${C.border}`, padding:"10px 12px", position:"relative", overflow:"hidden" }}>
                   <img src={icon} alt="" style={{ position:"absolute", top:6, right:8, width:24, height:24, imageRendering:"pixelated", opacity:0.5 }} />
-                  <div style={{ fontSize:9, color:C.textDim, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{label}</div>
-                  <div style={{ fontSize:18, fontWeight:900, color, marginTop:3 }}>{value}</div>
+                  <div style={{ fontFamily:PX, fontSize:7, color:C.textDim, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</div>
+                  <div style={{ fontFamily:PX, fontSize:11, color, marginTop:6, lineHeight:1.6 }}>{value}</div>
                 </div>
               ))}
             </div>
