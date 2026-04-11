@@ -1003,7 +1003,7 @@ export default function App() {
   // Daily challenge — load once per day per profile
   useEffect(() => {
     if (!activeProfileId || !currentLevel) return;
-    const key = `daily-challenge-${activeProfileId}-${todayDate}`;
+    const key = `daily-challenge-v2-${activeProfileId}-${todayDate}`;
     const cached = JSON.parse(localStorage.getItem(key) || "null");
     if (cached) { setDailyChallenge(cached); return; }
     fetch("/.netlify/functions/daily-challenge", {
@@ -1143,7 +1143,7 @@ export default function App() {
   }
 
   function completeDailyChallenge() {
-    const key = `daily-challenge-${activeProfileId}-${todayDate}`;
+    const key = `daily-challenge-v2-${activeProfileId}-${todayDate}`;
     const updated = { ...dailyChallenge, completed: true };
     setDailyChallenge(updated);
     localStorage.setItem(key, JSON.stringify(updated));
@@ -1426,7 +1426,7 @@ export default function App() {
   // Timer color logic (only shown in speed phase)
   const timerColor = time === 0 ? C.textDim : time <= currentLevel.masteryTime ? C.green : time <= currentLevel.masteryTime * 1.25 ? C.gold : C.red;
 
-  const stateLabel = { [LS.LOCKED]:"🔒 Locked", [LS.ACCURACY]:"⚡ Accuracy Phase", [LS.SPEED]:"⚔️ Speed Phase", [LS.MASTERED]:"✨ Mastered" };
+  const stateLabel = { [LS.LOCKED]:"🔒 Locked", [LS.ACCURACY]:"⚡ Accuracy Phase", [LS.SPEED]:"★ Speed Phase", [LS.MASTERED]:"✨ Mastered" };
   const stateColor = { [LS.LOCKED]:C.textDim, [LS.ACCURACY]:C.purple, [LS.SPEED]:C.gold, [LS.MASTERED]:C.green };
 
   // ── Phase routing ────────────────────────────────────────────────────────────
@@ -1496,13 +1496,13 @@ export default function App() {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))", gap:8, marginTop:16 }}>
               {[
                 { label:"Questions", value:totalQuestions.toLocaleString(), color:C.gold, icon:"📝" },
-                { label:"Mastered", value:`${masteredCount}/${flatLevels.length}`, color:C.green, icon:"⚔️" },
+                { label:"Mastered", value:`${masteredCount}/${flatLevels.length}`, color:C.green, icon:"★" },
                 { label:"Progress", value:`${overallPct}%`, color:C.purple, icon:"🗺️" },
                 { label:"Streak", value:`${streak} day${streak!==1?"s":""}`, color:"#f472b6", icon:"🔥" },
                 { label:"Badges", value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold, icon:"🏆" },
               ].map(({ label, value, color, icon }) => (
                 <div key={label} style={{ background:"rgba(255,255,255,0.04)", border:`2px solid ${C.border}`, padding:"10px 12px", position:"relative", overflow:"hidden" }}>
-                  <div style={{ position:"absolute", top:6, right:8, fontSize:16, opacity:0.15 }}>{icon}</div>
+                  <div style={{ position:"absolute", top:8, right:10, fontSize:20, opacity:0.25 }}>{icon}</div>
                   <div style={{ fontSize:9, color:C.textDim, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{label}</div>
                   <div style={{ fontSize:18, fontWeight:900, color, marginTop:3 }}>{value}</div>
                 </div>
@@ -1523,7 +1523,7 @@ export default function App() {
 
         {/* ── Tabs ── */}
         <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
-          {[["dashboard","⚔️ Quest"],["journey","🗺️ Journey"],["badges","🏆 Trophies"],["history","📜 History"],["settings","⚙️ Settings"]].map(([id,label]) => (
+          {[["dashboard","★ Quest"],["journey","🗺 Journey"],["badges","🏆 Trophies"],["history","📜 History"],["settings","⚙ Settings"]].map(([id,label]) => (
             <button key={id} onClick={() => setActiveTab(id)} className="fun-btn" style={S.tab(activeTab===id)}>{label}</button>
           ))}
         </div>
@@ -1536,7 +1536,7 @@ export default function App() {
             <BadgeDetailModal badge={selectedBadge} earned={selectedBadge ? badges.includes(selectedBadge.id) : false} onClose={() => setSelectedBadge(null)} />
 
             {/* Current level info card — collapsed by default */}
-            <div style={{ ...S.card, borderLeft:`8px solid ${stateColor[levelState]}`, padding:0, overflow:"hidden" }}>
+            <div style={{ ...S.card, borderLeft:`6px solid ${stateColor[levelState]}`, boxShadow:`-4px 0 16px ${stateColor[levelState]}44, 5px 5px 0 ${C.shadow}`, padding:0, overflow:"hidden" }}>
               {/* Always-visible header row */}
               <div style={{ display:"flex", justifyContent:"space-between", gap:12, alignItems:"center", padding:"14px 16px", cursor:"pointer" }}
                 onClick={() => setShowLevelDetails(v => !v)}>
@@ -1630,13 +1630,11 @@ export default function App() {
                           filter:`drop-shadow(0 0 8px ${mascotState==="celebrate"?C.gold+"99":C.purple+"55"})` }} />
 
                       {/* Coin counter */}
-                      <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px",
-                        background:C.bgCard, border:`2px solid ${C.gold}`, minWidth:80 }}>
-                        <span style={{ fontSize:18, lineHeight:1 }}>🪙</span>
-                        <div>
-                          <div style={{ fontFamily:PX, fontSize:13, color:C.gold, lineHeight:1.2 }}>{sessionCoins}</div>
-                          <div style={{ fontSize:9, color:C.textDim, fontWeight:700 }}>coins</div>
-                        </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 16px",
+                        background:C.bgCard, border:`2px solid ${C.gold}`,
+                        boxShadow:`0 0 10px ${C.gold}33` }}>
+                        <span style={{ fontSize:20, lineHeight:1 }}>🪙</span>
+                        <div style={{ fontFamily:PX, fontSize:14, color:C.gold, lineHeight:1 }}>{sessionCoins}</div>
                       </div>
 
                       {/* Timer */}
@@ -1683,7 +1681,7 @@ export default function App() {
                       borderTop:"none" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
                         <span style={{ fontSize:11, fontWeight:800, color:C.textSub }}>
-                          ⚔ Quest — get <span style={{ color:C.gold }}>{questTarget}</span> correct to complete
+                          ★ Quest — get <span style={{ color:C.gold }}>{questTarget}</span> correct to complete
                         </span>
                         <span style={{ fontFamily:PX, fontSize:9,
                           color: pageCorrect >= questTarget ? C.green : pageCorrect > 0 ? C.gold : C.textDim }}>
@@ -1731,8 +1729,8 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Question grid — 6 columns = 2 clean rows */}
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
+                  {/* Question grid — 6 columns = 2 clean rows, equal height */}
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gridAutoRows:"1fr", gap:8 }}>
                     {pageProblems.map((p, j) => {
                       const i = pageStart + j;
                       const val = answers[i] || "";
@@ -1890,7 +1888,7 @@ export default function App() {
                         if (String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge();
                         else setDailyAnswer("");
                       }}}
-                      className="fun-btn action-btn-pulse" style={S.btn(C.gold, C.goldDim)}>
+                      className="fun-btn" style={S.btn(C.gold, C.goldDim)}>
                       Check ⚡
                     </button>
                   </div>
@@ -1954,7 +1952,36 @@ export default function App() {
                 </div>
               </div>
             )}
-          </>
+          {/* ── Motivational footer strip ── */}
+          {!done && (
+            <div style={{ marginTop:4, padding:"10px 16px", background:C.bgFlat,
+              border:`2px solid ${C.border}`, display:"flex", alignItems:"center",
+              justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:13 }}>🔥</span>
+                <span style={{ fontSize:12, color:C.textSub, fontWeight:700 }}>
+                  {streak > 0
+                    ? `${streak}-day streak — keep it going!`
+                    : "Start your streak — practise every day!"}
+                </span>
+              </div>
+              <div style={{ display:"flex", gap:16 }}>
+                <div style={{ textAlign:"center" }}>
+                  <div style={{ fontSize:16, fontWeight:900, color:C.gold }}>{masteredCount}</div>
+                  <div style={{ fontSize:9, color:C.textDim, fontWeight:700 }}>mastered</div>
+                </div>
+                <div style={{ textAlign:"center" }}>
+                  <div style={{ fontSize:16, fontWeight:900, color:C.purple }}>{flatLevels.length - masteredCount}</div>
+                  <div style={{ fontSize:9, color:C.textDim, fontWeight:700 }}>remaining</div>
+                </div>
+                <div style={{ textAlign:"center" }}>
+                  <div style={{ fontSize:16, fontWeight:900, color:C.green }}>{overallPct}%</div>
+                  <div style={{ fontSize:9, color:C.textDim, fontWeight:700 }}>complete</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
         )}
 
         {/* ═══════════════ JOURNEY MAP ═══════════════ */}
@@ -2053,7 +2080,7 @@ export default function App() {
               <div style={{ ...S.card }}>
                 <div style={{ fontFamily:PX, fontSize:9, color:C.purple, lineHeight:1.8, marginBottom:16,
                   borderBottom:`3px solid ${C.gold}`, paddingBottom:8 }}>
-                  ⚔ Journey Badges — one for each level mastered
+                  ★ Journey Badges — one for each level mastered
                 </div>
                 {CURRICULUM.map(section => {
                   const sectionLevelBadges = LEVEL_BADGE_DEFS.filter(b => b.sectionId === section.id);
