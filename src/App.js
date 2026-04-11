@@ -9,7 +9,8 @@ const PAGE_SIZE = 12; // questions per page (3 pages per session)
 const ACCURACY_THRESHOLD = 95;   // % needed to pass each phase
 const SPEED_PASSES_NEEDED = 3;    // consecutive speed passes to master a level
 const REVIEW_Q_COUNT = 9;         // review questions mixed in during speed phase
-const DEFAULT_APP_SETTINGS = { parentPin: "1234", hasUnlockedSettingsOnce: false };
+const DEFAULT_APP_SETTINGS = { parentPin: "1234", hasUnlockedSettingsOnce: false, parentTierUnlocked: false, parentTierEmail: "" };
+const STRIPE_PAYMENT_LINK = process.env.REACT_APP_STRIPE_PAYMENT_LINK || "https://buy.stripe.com/REPLACE_ME";
 
 // ── Level states ──────────────────────────────────────────────────────────────
 const LS = { LOCKED: "locked", ACCURACY: "accuracy", SPEED: "speed", MASTERED: "mastered" };
@@ -637,6 +638,131 @@ function LandingPage({ onStart, onReturn }) {
   );
 }
 
+// ── UpgradeModal ──────────────────────────────────────────────────────────────
+function UpgradeModal({ onClose, onUnlocked, paymentLink }) {
+  const PX = "'Press Start 2P', monospace";
+  const [tab, setTab] = useState("info"); // info | activate
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const perks = [
+    { icon:"🤖", label:"AI Progress Chat",     desc:"Ask Claude anything about your child's progress" },
+    { icon:"📦", label:"Custom Question Packs", desc:"Generate 36 questions on any topic instantly" },
+    { icon:"📷", label:"Homework Scanner",      desc:"Photograph any worksheet, turn it into practice" },
+    { icon:"🎯", label:"AI Goal Tracking",      desc:"Set goals, get AI assessments on whether you're on track" },
+  ];
+
+  async function verifyEmail() {
+    if (!email.trim() || !email.includes("@")) { setError("Please enter a valid email."); return; }
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/.netlify/functions/verify-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (data.active) {
+        onUnlocked(email.trim());
+      } else {
+        setError("No active subscription found for that email. Please subscribe first, or check the email you used with Stripe.");
+      }
+    } catch {
+      setError("Could not verify — please try again.");
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center",
+      background:"rgba(0,0,0,0.8)", backdropFilter:"blur(4px)", padding:16, cursor:"pointer" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:"#120e24", border:"4px solid #fbbf24",
+        boxShadow:"8px 8px 0 #06030f", padding:28, maxWidth:420, width:"100%", cursor:"default" }}>
+
+        {/* Header */}
+        <div style={{ textAlign:"center", marginBottom:20 }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>👑</div>
+          <div style={{ fontFamily:PX, fontSize:11, color:"#fbbf24", lineHeight:1.8, marginBottom:4 }}>Parent Features</div>
+          <div style={{ fontSize:13, color:"#9b80d4", fontWeight:700 }}>Unlock AI-powered tools for parents</div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display:"flex", gap:0, marginBottom:20, border:"3px solid #2a1f4a" }}>
+          {[["info","What you get"],["activate","Activate"]].map(([t,label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ flex:1, padding:"8px", border:"none",
+              background: tab===t?"#7c3aed":"transparent", color: tab===t?"#fff":"#9b80d4",
+              fontFamily:PX, fontSize:7, cursor:"pointer", lineHeight:2 }}>{label}</button>
+          ))}
+        </div>
+
+        {tab === "info" && (
+          <>
+            <div style={{ marginBottom:16 }}>
+              {perks.map(p => (
+                <div key={p.label} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:12 }}>
+                  <span style={{ fontSize:20, flexShrink:0 }}>{p.icon}</span>
+                  <div>
+                    <div style={{ fontWeight:900, fontSize:13, color:"#e2d4ff" }}>{p.label}</div>
+                    <div style={{ fontSize:12, color:"#9b80d4", fontWeight:700 }}>{p.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign:"center", padding:"14px", background:"rgba(251,191,36,0.08)",
+              border:"3px solid #fbbf24", marginBottom:16 }}>
+              <div style={{ fontFamily:PX, fontSize:14, color:"#fbbf24", lineHeight:1.8 }}>£3.99 / month</div>
+              <div style={{ fontSize:12, color:"#9b80d4", fontWeight:700, marginTop:4 }}>Cancel anytime · Instant access</div>
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <button onClick={() => { window.open(paymentLink, "_blank"); setTab("activate"); }}
+                style={{ flex:1, border:"4px solid #fbbf24", background:"#fbbf24", color:"#111",
+                  fontFamily:PX, fontSize:9, padding:"12px", cursor:"pointer", boxShadow:"4px 4px 0 #92400e", lineHeight:1.8 }}>
+                Subscribe →
+              </button>
+              <button onClick={onClose} style={{ border:"3px solid #2a1f4a", background:"transparent",
+                color:"#9b80d4", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>
+                ✕
+              </button>
+            </div>
+          </>
+        )}
+
+        {tab === "activate" && (
+          <>
+            <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, lineHeight:1.6, marginBottom:16 }}>
+              Already subscribed? Enter the email you used with Stripe to activate on this device.
+            </p>
+            <input autoFocus type="email" value={email} onChange={e => { setEmail(e.target.value); setError(""); }}
+              onKeyDown={e => e.key==="Enter" && verifyEmail()}
+              placeholder="your@email.com"
+              style={{ border:"3px solid #7c3aed", background:"#1a1035", color:"#e2d4ff", padding:"10px 14px",
+                fontSize:14, fontWeight:700, width:"100%", boxSizing:"border-box", marginBottom:12, outline:"none" }} />
+            {error && <p style={{ color:"#ef4444", fontWeight:800, fontSize:12, marginBottom:10 }}>{error}</p>}
+            <div style={{ display:"flex", gap:10 }}>
+              <button onClick={verifyEmail} disabled={loading}
+                style={{ flex:1, border:"4px solid #7c3aed", background:"#7c3aed", color:"#fff",
+                  fontFamily:PX, fontSize:9, padding:"12px", cursor:"pointer", boxShadow:"4px 4px 0 #3b0764", lineHeight:1.8 }}>
+                {loading ? "Checking…" : "Activate →"}
+              </button>
+              <button onClick={onClose} style={{ border:"3px solid #2a1f4a", background:"transparent",
+                color:"#9b80d4", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>
+                ✕
+              </button>
+            </div>
+            <p style={{ fontSize:11, color:"#4a3668", fontWeight:700, marginTop:12, textAlign:"center" }}>
+              Not subscribed yet?{" "}
+              <span onClick={() => setTab("info")} style={{ color:"#fbbf24", cursor:"pointer", textDecoration:"underline" }}>
+                See what's included
+              </span>
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── WelcomeScreen ─────────────────────────────────────────────────────────────
 function WelcomeScreen({ onNew, onReturn }) {
   const PX = "'Press Start 2P', monospace";
@@ -1165,6 +1291,7 @@ export default function App() {
   const [activeProfileId, setActiveProfileId] = useState(loaded.activeProfileId);
   const [appSettings, setAppSettings] = useState(loaded.appSettings);
   const [staySignedIn, setStaySignedIn] = useState(loaded.staySignedIn);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [practiceId, setPracticeId] = useState(null); // null = active level
   // PIN entry screen state
@@ -1226,6 +1353,11 @@ export default function App() {
   // ── Derived state ───────────────────────────────────────────────────────────
   const profile = profiles[activeProfileId] || EMPTY_PROFILE(activeProfileId || "user", "Player");
   const { totalQuestions, streak, bestStreak, lastCompletedDate, history, levelProgress = {}, badges = [] } = profile;
+  const parentTierUnlocked = !!appSettings.parentTierUnlocked;
+  function unlockParentTier(email) {
+    setAppSettings(s => ({ ...s, parentTierUnlocked: true, parentTierEmail: email }));
+    setShowUpgradeModal(false);
+  }
 
   const activeLevelId = useMemo(() => getActiveLevelId(levelProgress), [levelProgress]);
   const currentLevelId = practiceId || activeLevelId;
@@ -1835,6 +1967,7 @@ export default function App() {
             <CelebrationOverlay show={showCelebration} onDismiss={() => { setShowCelebration(false); setActiveTab("dashboard"); }}
               encouragement={lastResult?.encouragement} newBadges={lastResult?.newBadges} character={profile.character} />
             <BadgeDetailModal badge={selectedBadge} earned={selectedBadge ? badges.includes(selectedBadge.id) : false} onClose={() => setSelectedBadge(null)} />
+            {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} onUnlocked={unlockParentTier} paymentLink={STRIPE_PAYMENT_LINK} />}
 
             {/* Current level info card — collapsed by default */}
             <div style={{ ...S.card, borderLeft:`6px solid ${stateColor[levelState]}`, boxShadow:`-4px 0 16px ${stateColor[levelState]}44, 5px 5px 0 ${C.shadow}`, padding:0, overflow:"hidden" }}>
@@ -2574,78 +2707,127 @@ export default function App() {
                 </div>
 
                 {/* ── AI Parent Features ── */}
-                <div style={{ ...S.flat, marginBottom:14 }}>
-                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>🤖 Progress Chat</div>
-                  <p style={S.sub}>Ask Claude anything about {profile.name}'s progress.</p>
-                  <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
-                    <input value={progressQuery} onChange={e => setProgressQuery(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter") askProgressQuestion(); }}
-                      placeholder={`e.g. "How is ${profile.name} doing?"`}
-                      style={{ ...S.settingInp, flex:1, minWidth:200 }} />
-                    <button onClick={askProgressQuestion} disabled={progressLoading} className="fun-btn" style={S.btn()}>
-                      {progressLoading ? "…" : "Ask"}
-                    </button>
-                  </div>
-                  {progressResponse && (
-                    <div style={{ marginTop:10, padding:"10px 14px", background:C.bgCard, border:`2px solid ${C.purple}40`, fontSize:13, color:C.textSub, lineHeight:1.6 }}>
-                      {progressResponse}
+                {!parentTierUnlocked ? (
+                  <div style={{ ...S.flat, position:"relative", overflow:"hidden" }}>
+                    {/* Upgrade banner */}
+                    <div style={{ textAlign:"center", padding:"20px 16px" }}>
+                      <div style={{ fontSize:28, marginBottom:8 }}>👑</div>
+                      <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:10, color:"#fbbf24", lineHeight:1.8, marginBottom:8 }}>
+                        Parent Features
+                      </div>
+                      <p style={{ ...S.sub, marginBottom:16, maxWidth:320, margin:"0 auto 16px" }}>
+                        Unlock AI-powered tools for parents — progress chat, homework scanner, custom question packs and goal tracking.
+                      </p>
+                      <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
+                        {["🤖 Progress Chat","📦 Custom Packs","📷 Homework Scanner","🎯 Goal Tracking"].map(f => (
+                          <div key={f} style={{ fontSize:12, color:"#9b80d4", fontWeight:700, display:"flex", alignItems:"center", gap:4 }}>
+                            <span style={{ color:"#fbbf24" }}>★</span> {f}
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ fontFamily:"'Press Start 2P',monospace", fontSize:13, color:"#fbbf24", marginBottom:4 }}>£3.99 / month</div>
+                      <div style={{ fontSize:12, color:"#9b80d4", fontWeight:700, marginBottom:16 }}>Cancel anytime · Instant access</div>
+                      <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+                        <button onClick={() => setShowUpgradeModal(true)} className="fun-btn"
+                          style={{ border:"4px solid #fbbf24", background:"#fbbf24", color:"#111",
+                            fontFamily:"'Press Start 2P',monospace", fontSize:9, padding:"12px 20px",
+                            cursor:"pointer", boxShadow:"4px 4px 0 #92400e", lineHeight:1.8 }}>
+                          Unlock Now →
+                        </button>
+                        <button onClick={() => { setShowUpgradeModal(true); }} className="fun-btn"
+                          style={{ border:"3px solid #2a1f4a", background:"transparent", color:"#9b80d4",
+                            fontFamily:"'Press Start 2P',monospace", fontSize:9, padding:"12px 14px", cursor:"pointer" }}>
+                          I've paid
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Unlocked badge */}
+                    <div style={{ ...S.flat, marginBottom:14, display:"flex", alignItems:"center", gap:12,
+                      background:"rgba(251,191,36,0.06)", border:`2px solid #fbbf2440` }}>
+                      <div style={{ fontSize:24 }}>👑</div>
+                      <div>
+                        <div style={{ fontWeight:900, fontSize:14, color:"#fbbf24" }}>Parent Features — Active</div>
+                        <div style={{ fontSize:12, color:"#9b80d4", fontWeight:700 }}>{appSettings.parentTierEmail}</div>
+                      </div>
+                    </div>
 
-                <div style={{ ...S.flat, marginBottom:14 }}>
-                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>📦 Custom Question Pack</div>
-                  <p style={S.sub}>Type a topic and Claude generates 36 questions.</p>
-                  <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
-                    <input value={customPackTopic} onChange={e => setCustomPackTopic(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter") generateCustomPack(); }}
-                      placeholder="e.g. 7 times table, adding to 100…"
-                      style={{ ...S.settingInp, flex:1, minWidth:200 }} />
-                    <button onClick={generateCustomPack} disabled={customPackLoading} className="fun-btn" style={S.btn()}>
-                      {customPackLoading ? "Generating…" : "Generate"}
-                    </button>
-                  </div>
-                </div>
+                    <div style={{ ...S.flat, marginBottom:14 }}>
+                      <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>🤖 Progress Chat</div>
+                      <p style={S.sub}>Ask Claude anything about {profile.name}'s progress.</p>
+                      <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
+                        <input value={progressQuery} onChange={e => setProgressQuery(e.target.value)}
+                          onKeyDown={e => { if (e.key === "Enter") askProgressQuestion(); }}
+                          placeholder={`e.g. "How is ${profile.name} doing?"`}
+                          style={{ ...S.settingInp, flex:1, minWidth:200 }} />
+                        <button onClick={askProgressQuestion} disabled={progressLoading} className="fun-btn" style={S.btn()}>
+                          {progressLoading ? "…" : "Ask"}
+                        </button>
+                      </div>
+                      {progressResponse && (
+                        <div style={{ marginTop:10, padding:"10px 14px", background:C.bgCard, border:`2px solid ${C.purple}40`, fontSize:13, color:C.textSub, lineHeight:1.6 }}>
+                          {progressResponse}
+                        </div>
+                      )}
+                    </div>
 
-                <div style={{ ...S.flat, marginBottom:14 }}>
-                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>📷 Homework Helper</div>
-                  <p style={S.sub}>Take a photo of a maths worksheet — Claude turns it into a practice session.</p>
-                  <div style={{ marginTop:10 }}>
-                    <label style={{ display:"inline-block", padding:"8px 16px", background:C.purpleMid, color:"#fff", border:`2px solid ${C.borderHi}`, boxShadow:`3px 3px 0 ${C.shadow}`, cursor:"pointer", fontWeight:700, fontSize:13 }}>
-                      {homeworkLoading ? "Reading worksheet…" : "📷 Upload Photo"}
-                      <input type="file" accept="image/*" capture="environment" onChange={processHomework}
-                        style={{ display:"none" }} disabled={homeworkLoading} />
-                    </label>
-                  </div>
-                </div>
+                    <div style={{ ...S.flat, marginBottom:14 }}>
+                      <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>📦 Custom Question Pack</div>
+                      <p style={S.sub}>Type a topic and Claude generates 36 questions.</p>
+                      <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
+                        <input value={customPackTopic} onChange={e => setCustomPackTopic(e.target.value)}
+                          onKeyDown={e => { if (e.key === "Enter") generateCustomPack(); }}
+                          placeholder="e.g. 7 times table, adding to 100…"
+                          style={{ ...S.settingInp, flex:1, minWidth:200 }} />
+                        <button onClick={generateCustomPack} disabled={customPackLoading} className="fun-btn" style={S.btn()}>
+                          {customPackLoading ? "Generating…" : "Generate"}
+                        </button>
+                      </div>
+                    </div>
 
-                <div style={S.flat}>
-                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>🎯 Goal Setting</div>
-                  <p style={S.sub}>Set a learning goal and check if {profile.name} is on track.</p>
-                  <div style={{ marginTop:10, display:"flex", flexDirection:"column", gap:8, maxWidth:400 }}>
-                    <input value={goalInput} onChange={e => setGoalInput(e.target.value)}
-                      placeholder="e.g. Master all times tables"
-                      style={{ ...S.settingInp, width:"100%" }} />
-                    <input type="date" value={goalDeadlineInput} onChange={e => setGoalDeadlineInput(e.target.value)}
-                      style={{ ...S.settingInp, width:"100%" }} />
-                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                      <button onClick={() => { updateProfile({ goal: goalInput, goalDeadline: goalDeadlineInput }); }} className="fun-btn" style={S.btn(C.green, C.greenBg)}>Save Goal</button>
-                      <button onClick={checkGoalProgress} disabled={goalLoading} className="fun-btn" style={S.btn()}>
-                        {goalLoading ? "Checking…" : "Check Progress"}
-                      </button>
+                    <div style={{ ...S.flat, marginBottom:14 }}>
+                      <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>📷 Homework Helper</div>
+                      <p style={S.sub}>Take a photo of a maths worksheet — Claude turns it into a practice session.</p>
+                      <div style={{ marginTop:10 }}>
+                        <label style={{ display:"inline-block", padding:"8px 16px", background:C.purpleMid, color:"#fff", border:`2px solid ${C.borderHi}`, boxShadow:`3px 3px 0 ${C.shadow}`, cursor:"pointer", fontWeight:700, fontSize:13 }}>
+                          {homeworkLoading ? "Reading worksheet…" : "📷 Upload Photo"}
+                          <input type="file" accept="image/*" capture="environment" onChange={processHomework}
+                            style={{ display:"none" }} disabled={homeworkLoading} />
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                  {goalAssessment && (
-                    <div style={{ marginTop:10, padding:"10px 14px", background:C.greenBg, border:`2px solid ${C.green}40`, fontSize:13, color:C.green, lineHeight:1.6 }}>
-                      {goalAssessment}
+
+                    <div style={S.flat}>
+                      <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>🎯 Goal Setting</div>
+                      <p style={S.sub}>Set a learning goal and check if {profile.name} is on track.</p>
+                      <div style={{ marginTop:10, display:"flex", flexDirection:"column", gap:8, maxWidth:400 }}>
+                        <input value={goalInput} onChange={e => setGoalInput(e.target.value)}
+                          placeholder="e.g. Master all times tables"
+                          style={{ ...S.settingInp, width:"100%" }} />
+                        <input type="date" value={goalDeadlineInput} onChange={e => setGoalDeadlineInput(e.target.value)}
+                          style={{ ...S.settingInp, width:"100%" }} />
+                        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                          <button onClick={() => { updateProfile({ goal: goalInput, goalDeadline: goalDeadlineInput }); }} className="fun-btn" style={S.btn(C.green, C.greenBg)}>Save Goal</button>
+                          <button onClick={checkGoalProgress} disabled={goalLoading} className="fun-btn" style={S.btn()}>
+                            {goalLoading ? "Checking…" : "Check Progress"}
+                          </button>
+                        </div>
+                      </div>
+                      {goalAssessment && (
+                        <div style={{ marginTop:10, padding:"10px 14px", background:C.greenBg, border:`2px solid ${C.green}40`, fontSize:13, color:C.green, lineHeight:1.6 }}>
+                          {goalAssessment}
+                        </div>
+                      )}
+                      {profile.goal && (
+                        <div style={{ marginTop:8, fontSize:12, color:C.textSub }}>
+                          Current goal: <strong style={{ color:C.text }}>{profile.goal}</strong>{profile.goalDeadline ? ` by ${profile.goalDeadline}` : ""}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {profile.goal && (
-                    <div style={{ marginTop:8, fontSize:12, color:C.textSub }}>
-                      Current goal: <strong style={{ color:C.text }}>{profile.goal}</strong>{profile.goalDeadline ? ` by ${profile.goalDeadline}` : ""}
-                    </div>
-                  )}
-                </div>
+                  </>
+                )}
               </>
             )}
           </div>
