@@ -509,21 +509,21 @@ function LandingPage({ onStart, onReturn }) {
                   style={{ textAlign:"center", padding:"16px 12px",
                     border:`3px solid ${hovered ? ch.color : border}`,
                     background: hovered ? `${ch.color}14` : bg,
-                    minWidth:130, flex:"0 0 auto", cursor:"default",
+                    width:140, boxSizing:"border-box", cursor:"default",
                     boxShadow: hovered ? `0 0 20px ${ch.color}44, 4px 4px 0 #06030f` : "4px 4px 0 #06030f",
                     transform: hovered ? "scale(1.08) translateY(-4px)" : "scale(1)",
                     transition:"transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease" }}>
                   <img src={`/char-${ch.id}.png`} alt={ch.label}
-                    style={{ imageRendering:"pixelated",
-                      width: hovered ? 88 : 72, height: hovered ? 88 : 72,
+                    style={{ imageRendering:"pixelated", width:80, height:80,
                       display:"block", margin:"0 auto 8px",
-                      transition:"width 0.15s ease, height 0.15s ease",
-                      filter:`drop-shadow(0 0 ${hovered ? 14 : 8}px ${ch.color}${hovered ? "bb" : "66"})` }} />
+                      filter:`drop-shadow(0 0 ${hovered ? 14 : 8}px ${ch.color}${hovered ? "bb" : "66"})`,
+                      transition:"filter 0.15s ease" }} />
                   <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
-                  {hovered
-                    ? <div style={{ fontSize:11, color:text, fontWeight:700, marginTop:6, lineHeight:1.5, maxWidth:120 }}>{ch.hover}</div>
-                    : <div style={{ fontSize:11, color:textSub, fontWeight:700, marginTop:4 }}>{ch.desc}</div>
-                  }
+                  <div style={{ fontSize:11, fontWeight:700, marginTop:4, lineHeight:1.5,
+                    color: hovered ? text : textSub,
+                    transition:"color 0.15s ease" }}>
+                    {hovered ? ch.hover : ch.desc}
+                  </div>
                 </div>
               );
             })}
