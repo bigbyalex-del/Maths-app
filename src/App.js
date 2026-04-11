@@ -1993,6 +1993,7 @@ export default function App() {
             ["journey",  "Journey",  "/tab-journey.png"],
             ["badges",   "Trophies", "/tab-trophies.png"],
             ["history",  "History",  "/tab-history.png"],
+            ["game",     "Game",     "/tab-game.png"],
             ["settings", "Settings", "/tab-settings.png"],
           ].map(([id, label, icon]) => (
             <button key={id} onClick={() => setActiveTab(id)} className="fun-btn"
@@ -2664,6 +2665,57 @@ export default function App() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ═══════════════ GAME ═══════════════ */}
+        {activeTab === "game" && (
+          <div style={{ ...S.card, textAlign:"center", padding:"48px 24px", position:"relative", overflow:"hidden" }}>
+
+            {/* Animated background glow */}
+            <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 40%, ${C.purpleMid}18, transparent 70%)`, pointerEvents:"none" }} />
+
+            {/* Game controller icon */}
+            <img src="/tab-game.png" alt="" style={{ width:64, height:64, imageRendering:"pixelated", marginBottom:20,
+              filter:`drop-shadow(0 0 16px ${C.purple}cc)` }} className="mascot-happy" />
+
+            {/* Coming Soon badge */}
+            <div style={{ display:"inline-block", padding:"4px 16px", border:`2px solid ${C.gold}`,
+              fontFamily:PX, fontSize:7, color:C.gold, letterSpacing:"0.15em", marginBottom:20 }}>
+              COMING SOON
+            </div>
+
+            <div style={{ fontFamily:PX, fontSize:18, color:C.gold, lineHeight:1.5, marginBottom:12,
+              textShadow:`0 0 24px ${C.gold}88` }} className="title-glow">
+              THE GAME
+            </div>
+
+            <p style={{ fontSize:15, fontWeight:800, color:C.text, lineHeight:1.7, marginBottom:8, maxWidth:480, margin:"0 auto 8px" }}>
+              A full maths RPG adventure is in development.
+            </p>
+            <p style={{ fontSize:13, color:C.textSub, fontWeight:700, lineHeight:1.7, marginBottom:32, maxWidth:440, margin:"0 auto 32px" }}>
+              Battle enemies by solving maths problems. Level up your hero, unlock spells, explore dungeons — all powered by the skills you've already been mastering here.
+            </p>
+
+            {/* Feature teasers */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px,1fr))", gap:12, maxWidth:600, margin:"0 auto 32px" }}>
+              {[
+                { icon:"⚔️", title:"Turn-Based Battles",  body:"Defeat monsters by answering maths questions correctly — and fast." },
+                { icon:"🗺️", title:"Dungeon Exploration", body:"Navigate maps, find treasure chests and unlock new zones as you master levels." },
+                { icon:"✨", title:"Spell Unlocks",        body:"Correct answers charge your spell bar. Get a streak and unleash a power move." },
+                { icon:"🏆", title:"Hero Progression",    body:"Your chosen character gains XP, new abilities and cosmetic upgrades." },
+              ].map(f => (
+                <div key={f.title} style={{ background:C.bgFlat, border:`2px solid ${C.border}`, padding:"16px 14px", textAlign:"left" }}>
+                  <div style={{ fontSize:24, marginBottom:8 }}>{f.icon}</div>
+                  <div style={{ fontFamily:PX, fontSize:8, color:C.purple, lineHeight:1.8, marginBottom:6 }}>{f.title}</div>
+                  <div style={{ fontSize:12, color:C.textSub, fontWeight:700, lineHeight:1.5 }}>{f.body}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ fontFamily:PX, fontSize:8, color:C.textDim, lineHeight:2 }}>
+              Keep practising — the better you get here, the stronger you'll be in the game.
+            </div>
           </div>
         )}
 
