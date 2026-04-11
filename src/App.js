@@ -442,7 +442,7 @@ function LandingPage({ onStart, onReturn }) {
     <div style={{ background:bg, color:text, fontFamily:"'Nunito', sans-serif", overflowX:"hidden" }}>
 
       {/* ── HERO ── */}
-      <div style={{ position:"relative", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover",
+      <div style={{ position:"relative", backgroundImage:"url('/backdrop-v2.png')", backgroundSize:"cover",
         backgroundPosition:"center top", padding:"56px 24px 48px" }}>
         <div style={{ position:"absolute", inset:0, background:"rgba(13,10,26,0.80)" }} />
         <div style={{ position:"relative", textAlign:"center", maxWidth:640, margin:"0 auto" }}>
@@ -634,7 +634,7 @@ function LandingPage({ onStart, onReturn }) {
       </div>
 
       {/* ── FINAL CTA ── */}
-      <div style={{ position:"relative", padding:"80px 20px", backgroundImage:"url('/backdrop-1.png')",
+      <div style={{ position:"relative", padding:"80px 20px", backgroundImage:"url('/backdrop-v2.png')",
         backgroundSize:"cover", backgroundPosition:"center bottom" }}>
         <div style={{ position:"absolute", inset:0, background:"rgba(13,10,26,0.85)" }} />
         <div style={{ position:"relative", textAlign:"center" }}>
@@ -799,7 +799,7 @@ function UpgradeModal({ onClose, onUnlocked, paymentLink }) {
 function WelcomeScreen({ onNew, onReturn }) {
   const PX = "'Press Start 2P', monospace";
   return (
-    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-v2.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"rgba(10,10,30,0.82)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:36, maxWidth:440, width:"100%", textAlign:"center", backdropFilter:"blur(2px)" }}>
         <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:140, height:"auto", marginBottom:12 }} />
         <h1 style={{ fontFamily:PX, fontSize:14, color:"#ffd700", lineHeight:1.8, marginBottom:8 }}>Get Maths Mastery</h1>
@@ -853,7 +853,7 @@ function SignupScreen({ onComplete, onBack }) {
   const btnStyle = { border:"4px solid #4f46e5", background:"#4f46e5", color:"#fff", fontFamily:PX, fontSize:10, padding:"14px", cursor:"pointer", boxShadow:"5px 5px 0 #312e81", width:"100%", lineHeight:1.8 };
 
   return (
-    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-v2.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:32, maxWidth:460, width:"100%", backdropFilter:"blur(2px)" }}>
         <div style={{ display:"flex", gap:8, marginBottom:24 }}>
           {[1,2,3,4].map(s => <div key={s} style={{ flex:1, height:6, borderRadius:3, background: s<=step?"#ffd700":"rgba(255,255,255,0.2)", transition:"background 0.3s" }} />)}
@@ -949,7 +949,7 @@ function PinEntryScreen({ onSubmit, onBack, loading, error }) {
   const [pin, setPin] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(true);
   return (
-    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-v2.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:32, maxWidth:400, width:"100%", textAlign:"center", backdropFilter:"blur(2px)" }}>
         <div style={{ fontSize:48, marginBottom:12 }}>🔑</div>
         <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:16 }}>Sign in</div>
@@ -1081,7 +1081,7 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
     const placedFlat = flatLevels.find(l => l.id === placedLevel.levelId);
     const placedFlatIdx = flatLevels.findIndex(l => l.id === placedLevel.levelId);
     return (
-      <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+      <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-v2.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
         <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #000", textAlign:"center", backdropFilter:"blur(2px)" }}>
           <img src={`/char-${character||"mage"}.png`} alt="Your hero" style={{ imageRendering:"pixelated", width:120, height:"auto", marginBottom:12 }} />
           <div style={{ fontFamily:PX, fontSize:12, color:"#ffd700", marginBottom:8 }}>Placement Complete!</div>
@@ -1110,7 +1110,7 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
   }
 
   return (
-    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
+    <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-v2.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #000", backdropFilter:"blur(2px)" }}>
         <div style={{ fontFamily:PX, fontSize:10, color:"#ffd700", marginBottom:4 }}>Placement Test</div>
         <p style={{ fontSize:12, color:"#c7d2fe", fontWeight:700, marginBottom:16 }}>Finding your perfect starting level, {profileName}!</p>
