@@ -2018,7 +2018,7 @@ export default function App() {
                   )}
 
                   {levelIntros[currentLevelId] && levelIntros[currentLevelId] !== "loading" && !customProblems && (
-                    <div style={{ padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.green}40`, fontSize:13, color:C.green, fontStyle:"italic", marginBottom:8 }}>
+                    <div style={{ padding:"12px 16px", background:C.bgFlat, border:`2px solid ${C.green}40`, fontSize:15, fontWeight:800, color:C.green, lineHeight:1.6, marginBottom:8 }}>
                       🧙 {levelIntros[currentLevelId]}
                     </div>
                   )}
@@ -2106,7 +2106,7 @@ export default function App() {
                         <button onClick={startSession} className="fun-btn"
                           style={{ width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center",
                             border:`2px solid ${C.border}`, cursor:"pointer",
-                            fontFamily:PX, fontSize:12, background:C.bgAlt, color:C.textDim, boxShadow:SD, padding:0 }}>↺</button>
+                            fontFamily:"'Nunito',sans-serif", fontSize:16, background:C.bgAlt, color:C.textDim, boxShadow:SD, padding:0 }}>↺</button>
                       </div>
                     </div>
 
@@ -2257,7 +2257,7 @@ export default function App() {
                             </button>
                           )}
                           {locked && wrong && hints[i] && (
-                            <div style={{ marginTop:4, fontSize:9, color:C.textSub, lineHeight:1.4, fontStyle:"italic" }}>
+                            <div style={{ marginTop:6, fontSize:11, fontWeight:700, color:C.textSub, lineHeight:1.5 }}>
                               {hints[i].loading ? "…" : hints[i].text}
                             </div>
                           )}
