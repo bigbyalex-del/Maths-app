@@ -1868,11 +1868,11 @@ export default function App() {
   const S = {
     page: { minHeight:"100vh", background:C.bg, fontFamily:"'Nunito',sans-serif", color:C.text, padding:16, boxSizing:"border-box" },
     wrap: { maxWidth:1100, margin:"0 auto" },
-    card: { background:C.bgCard, border:BD, boxShadow:SD, padding:20, marginBottom:16 },
-    flat: { background:C.bgFlat, border:`2px solid ${C.border}`, padding:14, marginBottom:10 },
+    card: { background:C.bgCard, border:BD, boxShadow:`5px 5px 0 ${C.shadow}, 0 0 20px ${C.border}66`, padding:20, marginBottom:16 },
+    flat: { background:C.bgFlat, border:`2px solid ${C.border}`, padding:14, marginBottom:10, boxShadow:`inset 0 0 16px ${C.border}44` },
     h: (sz=16) => ({ fontFamily:PX, fontSize:sz, lineHeight:1.7, margin:0, color:C.gold }),
     sub: { fontSize:13, color:C.textSub, fontWeight:700, lineHeight:1.5, margin:0 },
-    tab: (a) => ({ border:`4px solid ${a?C.gold:C.border}`, padding:"10px 16px", cursor:"pointer", fontFamily:PX, fontSize:9, lineHeight:1.8, background:a?C.bgCard:C.bgAlt, color:a?C.gold:C.textDim, boxShadow:a?`5px 5px 0 ${C.shadow}`:SD }),
+    tab: (a) => ({ border:`4px solid ${a?C.gold:C.border}`, padding:"10px 16px", cursor:"pointer", fontFamily:PX, fontSize:9, lineHeight:1.8, background:a?C.bgCard:C.bgAlt, color:a?C.gold:C.textDim, boxShadow:a?`5px 5px 0 ${C.shadow}, 0 0 14px ${C.gold}44`:SD }),
     btn: (bg=C.purpleMid, sh=C.shadow) => ({ border:BD, padding:"12px 20px", background:bg, color: bg===C.gold||bg==="#fbbf24"?"#111":"#fff", fontFamily:PX, fontSize:10, lineHeight:1.8, boxShadow:`5px 5px 0 ${sh}`, cursor:"pointer" }),
     qCard: (cor, wr, lv) => ({ background:cor||lv?C.greenBg:wr?C.redBg:C.bgAlt, border:`3px solid ${cor||lv?C.green:wr?C.red:C.border}`, boxShadow:`3px 3px 0 ${cor||lv?"#042819":wr?"#2d0a0a":C.shadow}`, padding:"8px 6px", minHeight:80, position:"relative" }),
     inp: (lv,cor,wr) => ({ width:"100%", maxWidth:56, height:38, border:`3px solid ${lv||cor?C.green:wr?C.red:C.purpleMid}`, textAlign:"center", fontSize:17, fontWeight:900, marginLeft:3, background:lv||cor?C.greenBg:wr?C.redBg:"#231760", outline:"none", fontFamily:"'Nunito',sans-serif", color:lv||cor?C.green:wr?C.red:C.text, boxShadow:`2px 2px 0 ${lv||cor?"#042819":wr?"#2d0a0a":C.shadow}`, boxSizing:"border-box" }),
@@ -1955,13 +1955,13 @@ export default function App() {
                 { label:"Questions", value:totalQuestions.toLocaleString(), color:C.gold,    icon:"/icon-questions.png" },
                 { label:"Mastered",  value:`${masteredCount}/${flatLevels.length}`,  color:C.green,   icon:"/icon-mastered.png" },
                 { label:"Progress",  value:`${overallPct}%`,                         color:C.purple,  icon:"/icon-progress.png" },
-                { label:"Streak",    value:`${streak} day${streak!==1?"s":""}`,      color:"#f472b6", icon:"/icon-streak.png" },
+                { label:"Streak",    value:`${streak} day${streak!==1?"s":""}`,      color:"#f97316", icon:"/icon-streak.png" },
                 { label:"Badges",    value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold, icon:"/icon-badges.png" },
               ].map(({ label, value, color, icon }) => (
-                <div key={label} style={{ background:"rgba(255,255,255,0.04)", border:`2px solid ${C.border}`, padding:"10px 12px", position:"relative", overflow:"hidden" }}>
-                  <img src={icon} alt="" style={{ position:"absolute", top:6, right:8, width:24, height:24, imageRendering:"pixelated", opacity:0.5 }} />
+                <div key={label} style={{ background:C.bgCard, border:`2px solid ${color}44`, padding:"10px 12px", position:"relative", overflow:"hidden", boxShadow:`0 0 12px ${color}22, inset 0 0 20px ${color}08` }}>
+                  <img src={icon} alt="" style={{ position:"absolute", top:6, right:8, width:24, height:24, imageRendering:"pixelated", opacity:0.4, filter:`drop-shadow(0 0 4px ${color})` }} />
                   <div style={{ fontFamily:PX, fontSize:7, color:C.textDim, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</div>
-                  <div style={{ fontFamily:PX, fontSize:11, color, marginTop:6, lineHeight:1.6 }}>{value}</div>
+                  <div style={{ fontFamily:PX, fontSize:11, color, marginTop:6, lineHeight:1.6, textShadow:`0 0 8px ${color}88` }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -2540,7 +2540,7 @@ export default function App() {
                 </div>
                 <div style={{ textAlign:"right" }}>
                   <div style={{ fontSize:28, fontWeight:900, color:C.gold }}>{earnedCount}</div>
-                  <div style={{ fontSize:12, color:"#6b5e9e", fontWeight:700 }}>/ {totalCount}</div>
+                  <div style={{ fontSize:12, color:C.textDim, fontWeight:700 }}>/ {totalCount}</div>
                 </div>
               </div>
 
@@ -2710,7 +2710,7 @@ export default function App() {
                     style={{ ...S.settingInp, width:"100%", maxWidth:200 }} placeholder="New 4-digit PIN" />
                   <div style={{ display:"flex", gap:10, marginTop:10 }}>
                     <button onClick={() => { if (!/^\d{4}$/.test(newPin)) { setPinError("Must be 4 digits."); return; } setAppSettings(p => ({ ...p, parentPin:newPin, hasUnlockedSettingsOnce:true })); setNewPin(""); setPinSuccess("PIN saved!"); }} className="fun-btn" style={S.btn()}>Save PIN</button>
-                    <button onClick={() => { setIsSettingsUnlocked(false); setPinEntry(""); setNewPin(""); }} className="fun-btn" style={S.btn("#6b7280","#374151")}>Lock</button>
+                    <button onClick={() => { setIsSettingsUnlocked(false); setPinEntry(""); setNewPin(""); }} className="fun-btn" style={S.btn(C.bgFlat, C.shadow)}>Lock</button>
                   </div>
                   {pinError && <p style={{ color:C.red, fontWeight:700, marginTop:8 }}>{pinError}</p>}
                   {pinSuccess && <p style={{ color:C.green, fontWeight:700, marginTop:8 }}>{pinSuccess}</p>}
