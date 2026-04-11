@@ -229,6 +229,14 @@ const TIER_INFO = {
   5: { label:"Legendary", color:"#f59e0b" },
 };
 
+const CHARACTERS = [
+  { id:"mage",    label:"Mage",    desc:"Spell-caster",     color:"#a855f7" },
+  { id:"knight",  label:"Knight",  desc:"Brave warrior",    color:"#f59e0b" },
+  { id:"archer",  label:"Archer",  desc:"Sharp-eyed rogue", color:"#22c55e" },
+  { id:"scholar", label:"Scholar", desc:"Book-reader",      color:"#3b82f6" },
+  { id:"bard",    label:"Bard",    desc:"Music-maker",      color:"#ef4444" },
+];
+
 function computeNewBadges(profile, sessionData) {
   const { accuracy, isSpeedPhase, newSpeedPasses, newMasteredCount, newTotalQ, newStreak,
           isBestTime, levelProgress, time, masteryTime, currentHour = -1,
@@ -337,7 +345,7 @@ function getEncouragement(accuracy, time, masteryTime, isSpeedPhase, speedPasses
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────────
-const EMPTY_PROFILE = (id, name) => ({ id, name, totalQuestions: 0, streak: 0, bestStreak: 0, lastCompletedDate: "", history: [], levelProgress: {}, badges: [], placementDone: false });
+const EMPTY_PROFILE = (id, name) => ({ id, name, character: "mage", totalQuestions: 0, streak: 0, bestStreak: 0, lastCompletedDate: "", history: [], levelProgress: {}, badges: [], placementDone: false });
 
 // ── App phases ────────────────────────────────────────────────────────────────
 const PHASE = { WELCOME:"welcome", SIGNUP:"signup", PIN_ENTRY:"pin_entry", PLACEMENT:"placement", APP:"app" };
@@ -411,6 +419,7 @@ function SignupScreen({ onComplete, onBack }) {
   const [age, setAge] = useState("");
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
+  const [character, setCharacter] = useState("mage");
   const [error, setError] = useState("");
 
   function nextStep() {
@@ -423,7 +432,9 @@ function SignupScreen({ onComplete, onBack }) {
       setError(""); setStep(3);
     } else if (step === 3) {
       if (pin !== pinConfirm) { setError("PINs don't match — try again."); setPinConfirm(""); return; }
-      onComplete({ name: name.trim(), age: parseInt(age), pin });
+      setError(""); setStep(4);
+    } else if (step === 4) {
+      onComplete({ name: name.trim(), age: parseInt(age), pin, character });
     }
   }
 
@@ -432,9 +443,9 @@ function SignupScreen({ onComplete, onBack }) {
 
   return (
     <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
-      <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:32, maxWidth:420, width:"100%", backdropFilter:"blur(2px)" }}>
+      <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:32, maxWidth:460, width:"100%", backdropFilter:"blur(2px)" }}>
         <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-          {[1,2,3].map(s => <div key={s} style={{ flex:1, height:6, borderRadius:3, background: s<=step?"#ffd700":"rgba(255,255,255,0.2)", transition:"background 0.3s" }} />)}
+          {[1,2,3,4].map(s => <div key={s} style={{ flex:1, height:6, borderRadius:3, background: s<=step?"#ffd700":"rgba(255,255,255,0.2)", transition:"background 0.3s" }} />)}
         </div>
 
         {step === 1 && (
@@ -482,6 +493,29 @@ function SignupScreen({ onComplete, onBack }) {
           </>
         )}
 
+        {step === 4 && (
+          <>
+            <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:8 }}>Step 4: Pick your hero!</div>
+            <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, lineHeight:1.6, marginBottom:16 }}>
+              Choose a character to represent you on your quest.
+            </p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8, marginBottom:8 }}>
+              {CHARACTERS.map(ch => (
+                <div key={ch.id} onClick={() => setCharacter(ch.id)}
+                  style={{ cursor:"pointer", textAlign:"center", padding:"8px 4px", border: character===ch.id?`3px solid ${ch.color}`:"3px solid transparent",
+                    background: character===ch.id?"rgba(255,255,255,0.08)":"transparent",
+                    boxShadow: character===ch.id?`0 0 12px ${ch.color}55`:"none",
+                    transition:"all 0.15s" }}>
+                  <img src={`/char-${ch.id}.png`} alt={ch.label}
+                    style={{ imageRendering:"pixelated", width:52, height:52, display:"block", margin:"0 auto 4px" }} />
+                  <div style={{ fontSize:9, fontFamily:PX, color: character===ch.id?ch.color:"#c7d2fe", lineHeight:1.4 }}>{ch.label}</div>
+                  <div style={{ fontSize:10, color:"#9ca3af", fontWeight:700, marginTop:2 }}>{ch.desc}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         {error && <p style={{ color:"#ef4444", fontWeight:800, fontSize:13, marginTop:10 }}>{error}</p>}
 
         <div style={{ display:"flex", gap:10, marginTop:20 }}>
@@ -490,7 +524,7 @@ function SignupScreen({ onComplete, onBack }) {
             Back
           </button>
           <button onClick={nextStep} style={{ ...btnStyle, flex:1, padding:"12px" }}>
-            {step === 3 ? "Create account" : "Next →"}
+            {step === 4 ? "Begin quest!" : "Next →"}
           </button>
         </div>
       </div>
@@ -529,7 +563,7 @@ function PinEntryScreen({ onSubmit, onBack, loading, error }) {
 // ── PlacementTest (block-based, speed-measured) ───────────────────────────────
 // 3 questions per stage. Need 2/3 correct + avg speed ≤ threshold to advance.
 // Speed measured silently — no countdown shown to child.
-function PlacementTest({ profileName, startStage, onComplete, onParentOverride, parentPin }) {
+function PlacementTest({ profileName, startStage, onComplete, onParentOverride, parentPin, character }) {
   const PX = "'Press Start 2P', monospace";
   const clampedStart = Math.min(startStage, PLACEMENT_STAGES.length - 1);
   const [stageIdx, setStageIdx] = useState(clampedStart);
@@ -632,7 +666,7 @@ function PlacementTest({ profileName, startStage, onComplete, onParentOverride, 
     return (
       <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
         <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", padding:32, maxWidth:460, width:"100%", boxShadow:"8px 8px 0 #000", textAlign:"center", backdropFilter:"blur(2px)" }}>
-          <img src="/maths-master.png" alt="The Maths Master" style={{ imageRendering:"pixelated", width:120, height:"auto", marginBottom:12 }} />
+          <img src={`/char-${character||"mage"}.png`} alt="Your hero" style={{ imageRendering:"pixelated", width:120, height:"auto", marginBottom:12 }} />
           <div style={{ fontFamily:PX, fontSize:12, color:"#ffd700", marginBottom:8 }}>Placement Complete!</div>
           <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, fontStyle:"italic", marginBottom:8 }}>
             "I have assessed your abilities, {profileName}."
@@ -776,7 +810,7 @@ function PhaseIndicator({ passes, needed = SPEED_PASSES_NEEDED, size = 18 }) {
   );
 }
 
-function CelebrationOverlay({ show, onDismiss, encouragement, newBadges }) {
+function CelebrationOverlay({ show, onDismiss, encouragement, newBadges, character }) {
   if (!show) return null;
   const colors = ["#f59e0b","#ef4444","#3b82f6","#22c55e","#a855f7","#ec4899","#06b6d4"];
   const pieces = Array.from({ length: 28 }, (_, i) => ({ left:`${3+(i*3.4)%93}%`, color:colors[i%colors.length], delay:`${(i*0.09).toFixed(2)}s`, size:8+(i%5)*4 }));
@@ -785,7 +819,7 @@ function CelebrationOverlay({ show, onDismiss, encouragement, newBadges }) {
       {pieces.map((p,i) => <div key={i} style={{ position:"absolute",top:"-60px",left:p.left,width:p.size,height:p.size,background:p.color,borderRadius:i%2===0?"50%":2,animation:`confetti-fall 2.6s ease-in ${p.delay} both` }} />)}
       <div style={{ background:"#fff",border:"4px solid #111",boxShadow:"8px 8px 0 #111",padding:"36px 44px",textAlign:"center",maxWidth:420,animation:"celebrate-pulse 0.8s ease-in-out infinite" }}>
         {encouragement?.type === "mastery" && (
-          <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:100, height:"auto", marginBottom:8 }} />
+          <img src={`/char-${character||"mage"}.png`} alt="Your hero" style={{ imageRendering:"pixelated", width:100, height:"auto", marginBottom:8 }} />
         )}
         <div style={{ fontSize:52, marginBottom:8 }}>{encouragement?.emoji || "🌟"}</div>
         <div style={{ fontSize:28,fontWeight:900,color:"#111",fontFamily:"'Nunito',sans-serif",lineHeight:1.2 }}>{encouragement?.headline}</div>
@@ -1044,9 +1078,9 @@ export default function App() {
     setAppPhase(PHASE.APP);
   }
 
-  function handleSignup({ name, age, pin }) {
+  function handleSignup({ name, age, pin, character }) {
     const id = pin;
-    const newProfile = { ...EMPTY_PROFILE(id, name), age };
+    const newProfile = { ...EMPTY_PROFILE(id, name), age, character: character || "mage" };
     setProfiles(prev => ({ ...prev, [id]: newProfile }));
     setActiveProfileId(id);
     setSyncPin(pin);
@@ -1436,7 +1470,7 @@ export default function App() {
   if (appPhase === PHASE.PLACEMENT) {
     const prof = profiles[activeProfileId] || {};
     const startStage = ageToStartStage(prof.age || 8);
-    return <PlacementTest profileName={prof.name || "there"} startStage={startStage} onComplete={completePlacement} onParentOverride={skipPlacement} parentPin={appSettings.parentPin} />;
+    return <PlacementTest profileName={prof.name || "there"} startStage={startStage} onComplete={completePlacement} onParentOverride={skipPlacement} parentPin={appSettings.parentPin} character={prof.character} />;
   }
 
   return (
@@ -1532,7 +1566,7 @@ export default function App() {
         {activeTab === "dashboard" && (
           <>
             <CelebrationOverlay show={showCelebration} onDismiss={() => { setShowCelebration(false); setActiveTab("dashboard"); }}
-              encouragement={lastResult?.encouragement} newBadges={lastResult?.newBadges} />
+              encouragement={lastResult?.encouragement} newBadges={lastResult?.newBadges} character={profile.character} />
             <BadgeDetailModal badge={selectedBadge} earned={selectedBadge ? badges.includes(selectedBadge.id) : false} onClose={() => setSelectedBadge(null)} />
 
             {/* Current level info card — collapsed by default */}
@@ -1624,7 +1658,7 @@ export default function App() {
                       borderBottom:`2px solid ${C.border}60` }}>
 
                       {/* Mascot — bigger, outside coin box */}
-                      <img src="/maths-master.png" alt=""
+                      <img src={`/char-${profile.character||"mage"}.png`} alt=""
                         className={`mascot-${mascotState}`}
                         style={{ imageRendering:"pixelated", width:56, height:56, objectFit:"contain", flexShrink:0,
                           filter:`drop-shadow(0 0 8px ${mascotState==="celebrate"?C.gold+"99":C.purple+"55"})` }} />
@@ -1988,7 +2022,7 @@ export default function App() {
         {activeTab === "journey" && (
           <div style={S.card}>
             <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:6 }}>
-              <img src="/maths-master.png" alt="Maths Master" style={{ imageRendering:"pixelated", width:80, height:"auto", flexShrink:0 }} />
+              <img src={`/char-${profile.character||"mage"}.png`} alt="Your hero" style={{ imageRendering:"pixelated", width:80, height:"auto", flexShrink:0 }} />
               <div>
                 <div style={S.h(12)}>Journey Map</div>
                 <p style={{ ...S.sub, marginTop:4, fontStyle:"italic" }}>"{overallPct < 25 ? "Your journey begins. Stay focused." : overallPct < 50 ? "Good progress. Keep pushing forward." : overallPct < 75 ? "You are becoming a true mathematician." : overallPct < 100 ? "Almost there. Mastery is within reach." : "You have mastered all levels. Impressive."}"</p>
@@ -2217,6 +2251,23 @@ export default function App() {
                       <input value={p.name} onChange={e => setProfiles(prev => ({ ...prev, [p.id]: { ...prev[p.id], name:e.target.value } }))} style={{ ...S.settingInp, flex:1, maxWidth:260 }} />
                     </div>
                   ))}
+                </div>
+                <div style={{ ...S.flat, marginBottom:14 }}>
+                  <div style={{ fontWeight:900, fontSize:16, marginBottom:10 }}>Choose your hero</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
+                    {CHARACTERS.map(ch => (
+                      <div key={ch.id} onClick={() => updateProfile({ character: ch.id })}
+                        style={{ cursor:"pointer", textAlign:"center", padding:"8px 4px",
+                          border: profile.character===ch.id?`3px solid ${ch.color}`:"3px solid transparent",
+                          background: profile.character===ch.id?"rgba(255,255,255,0.07)":"transparent",
+                          boxShadow: profile.character===ch.id?`0 0 12px ${ch.color}55`:"none",
+                          transition:"all 0.15s" }}>
+                        <img src={`/char-${ch.id}.png`} alt={ch.label}
+                          style={{ imageRendering:"pixelated", width:52, height:52, display:"block", margin:"0 auto 4px" }} />
+                        <div style={{ fontSize:10, fontWeight:900, color: profile.character===ch.id?ch.color:C.text }}>{ch.label}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div style={{ ...S.flat, marginBottom:14 }}>
                   <div style={{ fontWeight:900, fontSize:16, marginBottom:8 }}>Change PIN</div>
