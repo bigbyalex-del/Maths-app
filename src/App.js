@@ -80,6 +80,15 @@ function computeAnswer(a, b, op) {
 }
 
 function normalizeAnswer(v) { return String(v).trim().replace(/\s+/g, "").toLowerCase(); }
+function stripMarkdown(text) {
+  return (text || "")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\n+/g, " ")
+    .trim();
+}
 
 // Build worksheet: accuracy phase = 36 from current level
 // Speed phase = 27 from current + 9 interleaved from mastered levels (retrieval + interleaving research)
@@ -887,6 +896,7 @@ export default function App() {
   const [goalDeadlineInput, setGoalDeadlineInput] = useState("");
   const [goalAssessment, setGoalAssessment] = useState(null);
   const [goalLoading, setGoalLoading] = useState(false);
+  const [showLevelDetails, setShowLevelDetails] = useState(false);
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -983,7 +993,7 @@ export default function App() {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ levelTitle: currentLevel.title, sectionName: currentLevel.sectionName, skill: currentLevel.skill }),
     }).then(r => r.json()).then(d => {
-      setLevelIntros(prev => ({ ...prev, [currentLevelId]: d.intro || "" }));
+      setLevelIntros(prev => ({ ...prev, [currentLevelId]: stripMarkdown(d.intro || "") }));
     }).catch(() => setLevelIntros(prev => ({ ...prev, [currentLevelId]: "" })));
   }, [currentLevelId]); // eslint-disable-line
 
@@ -1392,8 +1402,8 @@ export default function App() {
     sub: { fontSize:13, color:C.textSub, fontWeight:700, lineHeight:1.5, margin:0 },
     tab: (a) => ({ border:`4px solid ${a?C.gold:C.border}`, padding:"10px 16px", cursor:"pointer", fontFamily:PX, fontSize:9, lineHeight:1.8, background:a?C.bgCard:C.bgAlt, color:a?C.gold:C.textDim, boxShadow:a?`5px 5px 0 ${C.shadow}`:SD }),
     btn: (bg=C.purpleMid, sh=C.shadow) => ({ border:BD, padding:"12px 20px", background:bg, color: bg===C.gold||bg==="#fbbf24"?"#111":"#fff", fontFamily:PX, fontSize:10, lineHeight:1.8, boxShadow:`5px 5px 0 ${sh}`, cursor:"pointer" }),
-    qCard: (cor, wr, lv) => ({ background:cor||lv?C.greenBg:wr?C.redBg:C.bgAlt, border:`4px solid ${cor||lv?C.green:wr?C.red:C.border}`, boxShadow:`3px 3px 0 ${cor||lv?"#042819":wr?"#2d0a0a":C.shadow}`, padding:"10px 8px", minHeight:86, position:"relative" }),
-    inp: (lv,cor,wr) => ({ width:62, height:44, border:`4px solid ${lv||cor?C.green:wr?C.red:C.border}`, textAlign:"center", fontSize:19, fontWeight:900, marginLeft:5, background:lv||cor?C.greenBg:wr?C.redBg:C.bgFlat, outline:"none", fontFamily:"'Nunito',sans-serif", color:lv||cor?C.green:wr?C.red:C.text, boxShadow:`2px 2px 0 ${lv||cor?"#042819":wr?"#2d0a0a":C.shadow}` }),
+    qCard: (cor, wr, lv) => ({ background:cor||lv?C.greenBg:wr?C.redBg:C.bgAlt, border:`3px solid ${cor||lv?C.green:wr?C.red:C.border}`, boxShadow:`3px 3px 0 ${cor||lv?"#042819":wr?"#2d0a0a":C.shadow}`, padding:"8px 6px", minHeight:80, position:"relative" }),
+    inp: (lv,cor,wr) => ({ width:"100%", maxWidth:56, height:38, border:`3px solid ${lv||cor?C.green:wr?C.red:C.purpleMid}`, textAlign:"center", fontSize:17, fontWeight:900, marginLeft:3, background:lv||cor?C.greenBg:wr?C.redBg:"#231760", outline:"none", fontFamily:"'Nunito',sans-serif", color:lv||cor?C.green:wr?C.red:C.text, boxShadow:`2px 2px 0 ${lv||cor?"#042819":wr?"#2d0a0a":C.shadow}`, boxSizing:"border-box" }),
     settingInp: { height:44, border:BD, padding:"0 12px", fontSize:15, fontWeight:700, background:C.bgFlat, outline:"none", boxSizing:"border-box", fontFamily:"'Nunito',sans-serif", boxShadow:`3px 3px 0 ${C.shadow}`, color:C.text },
   };
 
@@ -1418,33 +1428,73 @@ export default function App() {
       <div style={S.wrap}>
 
         {/* ── Header ── */}
-        <div style={{ ...S.card, background:"linear-gradient(150deg, #1e1350 0%, #0f0a1e 100%)", borderTop:`4px solid ${C.gold}`, marginBottom:14 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:16, flexWrap:"wrap" }}>
-            <div>
-              <h1 style={{ ...S.h(17), color:C.gold }} className="flicker">⚔ Get Maths Mastery</h1>
-              <p style={{ color:C.textSub, fontSize:13, fontWeight:700, marginTop:5 }}>
-                Welcome back, <span style={{ color:C.purple }}>{profile.name}</span>! Accuracy first, then speed.
-              </p>
-            </div>
-            <button onClick={() => { if (window.confirm("Switch user? You'll go back to the login screen.")) { setAppPhase(PHASE.WELCOME); } }} className="fun-btn"
-              style={{ border:`2px solid ${C.border}`, padding:"9px 14px", cursor:"pointer", fontFamily:PX, fontSize:8, lineHeight:1.8, background:C.bgAlt, color:C.textSub, boxShadow:SD, alignSelf:"flex-start" }}>
-              Switch User
-            </button>
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))", gap:8, marginTop:14 }}>
-            {[
-              { label:"Questions", value:totalQuestions.toLocaleString(), color:C.gold },
-              { label:"Mastered", value:`${masteredCount}/${flatLevels.length}`, color:C.green },
-              { label:"Progress", value:`${overallPct}%`, color:C.purple },
-              { label:"🔥 Streak", value:`${streak} day${streak!==1?"s":""}`, color:"#f472b6" },
-              { label:"Badges", value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold },
-            ].map(({ label, value, color }) => (
-              <div key={label} style={{ background:C.bgAlt, border:`2px solid ${C.border}`, padding:"10px 12px" }}>
-                <div style={{ fontSize:9, color:C.textDim, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</div>
-                <div style={{ fontSize:18, fontWeight:900, color, marginTop:3 }}>{value}</div>
+        <div style={{ background:"linear-gradient(150deg, #1e1350 0%, #0f0a1e 100%)", border:`4px solid ${C.gold}`, boxShadow:`0 0 32px rgba(251,191,36,0.18), 5px 5px 0 ${C.shadow}`, marginBottom:14, overflow:"hidden" }}>
+          {/* Top gold accent stripe */}
+          <div style={{ height:3, background:`linear-gradient(90deg, transparent, ${C.gold}, ${C.purple}, ${C.gold}, transparent)` }} />
+
+          <div style={{ padding:20 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+
+              {/* Logo + Title */}
+              <div style={{ display:"flex", alignItems:"center", gap:18 }}>
+                {/* Crest logo */}
+                <div style={{ position:"relative", flexShrink:0 }}>
+                  <img src="/logo-crest.png" alt="Get Maths Mastery"
+                    style={{ imageRendering:"pixelated", width:80, height:80, objectFit:"contain", display:"block",
+                      filter:"drop-shadow(0 0 16px rgba(251,191,36,0.6)) drop-shadow(0 0 6px rgba(196,181,253,0.4))" }} />
+                </div>
+                <div>
+                  {/* Main title — two lines */}
+                  <div style={{ fontFamily:PX, lineHeight:1.5, margin:0 }}>
+                    <div style={{ fontSize:11, color:C.textSub, letterSpacing:"0.14em", marginBottom:2 }}>
+                      ⚔ &nbsp;GET
+                    </div>
+                    <div>
+                      <span style={{ fontSize:18, color:C.gold, letterSpacing:"0.04em" }} className="title-glow flicker">
+                        MATHS&nbsp;
+                      </span>
+                      <span style={{ fontSize:18, color:C.purple, textShadow:`0 0 24px ${C.purple}88`, letterSpacing:"0.04em" }}>
+                        MASTERY
+                      </span>
+                    </div>
+                  </div>
+                  {/* Welcome sub-line */}
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:7 }}>
+                    <img src="/ui/divider-gold.png" alt="" style={{ imageRendering:"pixelated", height:8, width:40, objectFit:"cover", opacity:0.7 }} />
+                    <span style={{ fontSize:10, color:C.textSub, fontWeight:700, letterSpacing:"0.06em" }}>
+                      Welcome back, <span style={{ color:C.purple }}>{profile.name}</span>
+                    </span>
+                    <img src="/ui/divider-gold.png" alt="" style={{ imageRendering:"pixelated", height:8, width:40, objectFit:"cover", opacity:0.7, transform:"scaleX(-1)" }} />
+                  </div>
+                </div>
               </div>
-            ))}
+
+              <button onClick={() => { if (window.confirm("Switch user? You'll go back to the login screen.")) { setAppPhase(PHASE.WELCOME); } }} className="fun-btn"
+                style={{ border:`2px solid ${C.border}`, padding:"9px 14px", cursor:"pointer", fontFamily:PX, fontSize:8, lineHeight:1.8, background:C.bgAlt, color:C.textSub, boxShadow:SD, alignSelf:"flex-start", flexShrink:0 }}>
+                Switch User
+              </button>
+            </div>
+
+            {/* Stats row */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))", gap:8, marginTop:16 }}>
+              {[
+                { label:"Questions", value:totalQuestions.toLocaleString(), color:C.gold, icon:"📝" },
+                { label:"Mastered", value:`${masteredCount}/${flatLevels.length}`, color:C.green, icon:"⚔️" },
+                { label:"Progress", value:`${overallPct}%`, color:C.purple, icon:"🗺️" },
+                { label:"Streak", value:`${streak} day${streak!==1?"s":""}`, color:"#f472b6", icon:"🔥" },
+                { label:"Badges", value:`${badges.length}/${ALL_BADGE_DEFS.length}`, color:C.gold, icon:"🏆" },
+              ].map(({ label, value, color, icon }) => (
+                <div key={label} style={{ background:"rgba(255,255,255,0.04)", border:`2px solid ${C.border}`, padding:"10px 12px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:6, right:8, fontSize:16, opacity:0.15 }}>{icon}</div>
+                  <div style={{ fontSize:9, color:C.textDim, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{label}</div>
+                  <div style={{ fontSize:18, fontWeight:900, color, marginTop:3 }}>{value}</div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Bottom accent stripe */}
+          <div style={{ height:2, background:`linear-gradient(90deg, transparent, ${C.border}, transparent)` }} />
         </div>
 
         {/* ── Sync status bar ── */}
@@ -1468,78 +1518,68 @@ export default function App() {
               encouragement={lastResult?.encouragement} newBadges={lastResult?.newBadges} />
             <BadgeDetailModal badge={selectedBadge} earned={selectedBadge ? badges.includes(selectedBadge.id) : false} onClose={() => setSelectedBadge(null)} />
 
-            {/* Current level info card */}
-            <div style={{ ...S.card, borderLeft:`8px solid ${stateColor[levelState]}` }}>
-              <div style={{ display:"flex", justifyContent:"space-between", gap:12, flexWrap:"wrap", alignItems:"flex-start" }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:10, color:currentLevel.sectionColor, fontWeight:900, fontFamily:PX, lineHeight:1.6, marginBottom:4 }}>{currentLevel.sectionName}</div>
-                  <div style={S.h(14)}>{currentLevel.title}</div>
-                  <div style={{ ...S.sub, marginTop:4 }}>{currentLevel.skill}</div>
-
-                  {/* Phase status */}
-                  <div style={{ marginTop:10, display:"flex", gap:12, flexWrap:"wrap", alignItems:"center" }}>
-                    <span style={{ display:"inline-block", padding:"4px 10px", background:stateColor[levelState]+"22", border:`2px solid ${stateColor[levelState]}`, fontFamily:PX, fontSize:8, lineHeight:1.8, color:stateColor[levelState] }}>
-                      {stateLabel[levelState]}
-                    </span>
-                    {isSpeedPhase && (
-                      <span style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontSize:12, fontWeight:800, color:C.textSub }}>Mastery passes:</span>
-                        <PhaseIndicator passes={currentProg.speedPasses || 0} />
-                      </span>
-                    )}
-                    {levelState === LS.MASTERED && <span style={{ fontSize:13, fontWeight:800, color:C.green }}>✓ Mastered!</span>}
-                  </div>
+            {/* Current level info card — collapsed by default */}
+            <div style={{ ...S.card, borderLeft:`8px solid ${stateColor[levelState]}`, padding:0, overflow:"hidden" }}>
+              {/* Always-visible header row */}
+              <div style={{ display:"flex", justifyContent:"space-between", gap:12, alignItems:"center", padding:"14px 16px", cursor:"pointer" }}
+                onClick={() => setShowLevelDetails(v => !v)}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:9, color:currentLevel.sectionColor, fontWeight:900, fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>{currentLevel.sectionName}</div>
+                  <div style={{ fontFamily:PX, fontSize:13, color:C.gold, lineHeight:1.6, margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{currentLevel.title}</div>
                 </div>
-
-                {/* Target info */}
-                <div style={{ textAlign:"right", flexShrink:0 }}>
-                  {isSpeedPhase ? (
-                    <>
-                      <div style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>Target time</div>
-                      <div style={{ fontSize:26, fontWeight:900, color:C.purple, fontFamily:PX, lineHeight:1.3 }}>{formatTime(currentLevel.masteryTime)}</div>
-                      {currentProg.bestTime != null && <div style={{ fontSize:12, color:C.green, fontWeight:800, marginTop:2 }}>Your best: {formatTime(currentProg.bestTime)}</div>}
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ fontSize:11, color:C.textSub, fontWeight:700 }}>Phase 1</div>
-                      <div style={{ fontSize:16, fontWeight:900, color:C.purple, lineHeight:1.3 }}>Accuracy</div>
-                      <div style={{ fontSize:12, color:C.textSub, fontWeight:700 }}>Goal: {ACCURACY_THRESHOLD}%+</div>
-                    </>
+                <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+                  <span style={{ display:"inline-block", padding:"3px 10px", background:stateColor[levelState]+"22", border:`2px solid ${stateColor[levelState]}`, fontFamily:PX, fontSize:7, lineHeight:1.8, color:stateColor[levelState] }}>
+                    {stateLabel[levelState]}
+                  </span>
+                  {isSpeedPhase && <PhaseIndicator passes={currentProg.speedPasses || 0} />}
+                  {isSpeedPhase && (
+                    <div style={{ textAlign:"right" }}>
+                      <div style={{ fontSize:9, color:C.textSub, fontWeight:700 }}>Target</div>
+                      <div style={{ fontSize:15, fontWeight:900, color:C.purple, fontFamily:PX }}>{formatTime(currentLevel.masteryTime)}</div>
+                    </div>
                   )}
+                  <div style={{ fontSize:16, color:C.textDim, transition:"transform 0.2s", transform:showLevelDetails?"rotate(180deg)":"rotate(0deg)" }}>▼</div>
                 </div>
               </div>
 
-              {/* Strategy tip — shown in accuracy phase */}
-              {isAccuracyPhase && (
-                <div style={{ marginTop:12, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.borderHi}` }}>
-                  <span style={{ fontSize:13, fontWeight:700, color:C.purple }}>
-                    💡 <em>{currentLevel.sectionTip}</em>
-                  </span>
-                </div>
-              )}
-
-              {/* AI level intro */}
-              {levelIntros[currentLevelId] && levelIntros[currentLevelId] !== "loading" && !customProblems && (
-                <div style={{ marginTop:10, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.green}40`, fontSize:13, color:C.green, fontStyle:"italic" }}>
-                  🧙 {levelIntros[currentLevelId]}
-                </div>
-              )}
-
-              {/* Custom pack indicator */}
+              {/* Custom pack indicator — always visible when active */}
               {customProblems && (
-                <div style={{ marginTop:10, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.gold}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div style={{ margin:"0 16px 12px", padding:"8px 12px", background:C.bgFlat, border:`2px solid ${C.gold}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <span style={{ fontSize:12, fontWeight:700, color:C.gold }}>📦 Custom Pack: {customPackLabel}</span>
                   <button onClick={exitCustomPack} className="fun-btn" style={{ fontSize:10, padding:"3px 8px", background:C.bgAlt, border:`1.5px solid ${C.gold}`, cursor:"pointer", fontWeight:700, color:C.gold }}>✕ Exit</button>
                 </div>
               )}
 
-              {/* Mastery requirements explanation */}
-              <div style={{ marginTop:10, padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.border}`, fontSize:12, fontWeight:700, color:C.textSub }}>
-                {isAccuracyPhase && `Phase 1 — Accuracy: Get ${ACCURACY_THRESHOLD}%+ correct to unlock Phase 2 (Speed)`}
-                {isSpeedPhase && `Phase 2 — Speed: ${ACCURACY_THRESHOLD}%+ accuracy AND under ${formatTime(currentLevel.masteryTime)} · Need ${SPEED_PASSES_NEEDED} passes to master`}
-                {levelState === LS.MASTERED && "This level is mastered! Practising it here keeps your skills sharp."}
-                {levelState === LS.LOCKED && "Complete the previous level to unlock this one."}
-              </div>
+              {/* Expandable details */}
+              {showLevelDetails && (
+                <div style={{ borderTop:`2px solid ${C.border}`, padding:"14px 16px" }}>
+                  <div style={{ ...S.sub, marginBottom:10 }}>{currentLevel.skill}</div>
+
+                  {isSpeedPhase && currentProg.bestTime != null && (
+                    <div style={{ fontSize:12, color:C.green, fontWeight:800, marginBottom:10 }}>Your best: {formatTime(currentProg.bestTime)}</div>
+                  )}
+                  {levelState === LS.MASTERED && <div style={{ fontSize:13, fontWeight:800, color:C.green, marginBottom:10 }}>✓ Mastered! Keep practising to stay sharp.</div>}
+
+                  {isAccuracyPhase && (
+                    <div style={{ padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.borderHi}`, marginBottom:8 }}>
+                      <span style={{ fontSize:13, fontWeight:700, color:C.purple }}>💡 <em>{currentLevel.sectionTip}</em></span>
+                    </div>
+                  )}
+
+                  {levelIntros[currentLevelId] && levelIntros[currentLevelId] !== "loading" && !customProblems && (
+                    <div style={{ padding:"10px 14px", background:C.bgFlat, border:`2px solid ${C.green}40`, fontSize:13, color:C.green, fontStyle:"italic", marginBottom:8 }}>
+                      🧙 {levelIntros[currentLevelId]}
+                    </div>
+                  )}
+
+                  <div style={{ padding:"8px 12px", background:C.bgFlat, border:`2px solid ${C.border}`, fontSize:11, fontWeight:700, color:C.textSub }}>
+                    {isAccuracyPhase && `Phase 1 — Get ${ACCURACY_THRESHOLD}%+ correct to unlock Speed Phase`}
+                    {isSpeedPhase && `Phase 2 — ${ACCURACY_THRESHOLD}%+ accuracy AND under ${formatTime(currentLevel.masteryTime)} · Need ${SPEED_PASSES_NEEDED} passes to master`}
+                    {levelState === LS.MASTERED && "This level is mastered! Practising it here keeps your skills sharp."}
+                    {levelState === LS.LOCKED && "Complete the previous level to unlock this one."}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Worksheet */}
@@ -1626,8 +1666,8 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Question grid — current page only */}
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))", gap:9 }}>
+                  {/* Question grid — current page only, 6 columns = 2 full rows of 6 */}
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:9 }}>
                     {pageProblems.map((p, j) => {
                       const i = pageStart + j;
                       const val = answers[i] || "";
@@ -1639,7 +1679,7 @@ export default function App() {
                         <div key={`${currentLevelId}-${i}`} className={correct||live?"correct-card":""} style={{ ...S.qCard(correct,wrong,live), outline: p.isReview ? `2px dashed ${C.purple}` : "none" }}>
                           {p.isReview && <div style={{ fontSize:7, color:C.purple, fontFamily:PX, lineHeight:1.6, marginBottom:2 }}>Review</div>}
                           <div style={{ fontSize:7, color:C.textDim, fontFamily:PX, marginBottom:3, lineHeight:1.6 }}>Q{i+1}</div>
-                          <div style={{ fontSize:19, fontWeight:900, display:"flex", alignItems:"center", gap:4 }}>
+                          <div style={{ fontSize:15, fontWeight:900, display:"flex", alignItems:"center", gap:3, flexWrap:"wrap" }}>
                             <span>{p.a} {p.op} {p.b} =</span>
                             <input
                               ref={el => { inputRefs.current[i] = el; }}
