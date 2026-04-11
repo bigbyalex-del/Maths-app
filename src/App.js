@@ -1025,7 +1025,7 @@ export default function App() {
   function focusQuestion(i) {
     markQuestionStart(i);
     const el = inputRefs.current[i];
-    if (el) { el.focus(); el.select?.(); }
+    if (el) { el.focus({ preventScroll: true }); el.select?.(); }
   }
 
   function startSession() {
