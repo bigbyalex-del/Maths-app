@@ -1,7 +1,7 @@
 {
-  "short_name": "GetMathsMastery",
+  "short_name": "Maths Mastery",
   "name": "Get Maths Mastery",
-  "description": "A Kumon-style maths practice app for children",
+  "description": "Science-backed KS1 & KS2 maths practice for children. AI hints, streaks, 40+ badges. Free forever.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -25,7 +25,7 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#4f46e5",
-  "background_color": "#f0f4ff",
+  "theme_color": "#0d0a1a",
+  "background_color": "#0d0a1a",
   "categories": ["education", "kids"]
 }

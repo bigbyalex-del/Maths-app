@@ -348,7 +348,7 @@ function getEncouragement(accuracy, time, masteryTime, isSpeedPhase, speedPasses
 const EMPTY_PROFILE = (id, name) => ({ id, name, character: "mage", totalQuestions: 0, streak: 0, bestStreak: 0, lastCompletedDate: "", history: [], levelProgress: {}, badges: [], placementDone: false });
 
 // ── App phases ────────────────────────────────────────────────────────────────
-const PHASE = { WELCOME:"welcome", SIGNUP:"signup", PIN_ENTRY:"pin_entry", PLACEMENT:"placement", APP:"app" };
+const PHASE = { LANDING:"landing", WELCOME:"welcome", SIGNUP:"signup", PIN_ENTRY:"pin_entry", PLACEMENT:"placement", APP:"app" };
 
 // ── Placement test ────────────────────────────────────────────────────────────
 // Block-based adaptive: 3 questions per stage. Need 2/3 correct + speed to advance.
@@ -382,6 +382,257 @@ function buildPlacementProgress(placedLevelId) {
     progress[flatLevels[i].id] = { mastered: true, accuracyUnlocked: true, speedPasses: 3, attempts: 0, bestAccuracy: 100 };
   }
   return progress;
+}
+
+// ── LandingPage ───────────────────────────────────────────────────────────────
+function LandingPage({ onStart, onReturn }) {
+  const PX = "'Press Start 2P', monospace";
+  const NU = "'Nunito', sans-serif";
+  const bg = "#0d0a1a";
+  const bgAlt = "#120e24";
+  const gold = "#fbbf24";
+  const purple = "#7c3aed";
+  const purpleLight = "#a78bfa";
+  const text = "#e2d4ff";
+  const textSub = "#9b80d4";
+  const border = "#2a1f4a";
+
+  const Section = ({ children, style }) => (
+    <div style={{ maxWidth:900, margin:"0 auto", padding:"0 20px", ...style }}>{children}</div>
+  );
+  const Tag = ({ children, color }) => (
+    <span style={{ display:"inline-block", padding:"3px 12px", border:`2px solid ${color||gold}`,
+      fontFamily:PX, fontSize:7, color:color||gold, lineHeight:2, marginBottom:16 }}>{children}</span>
+  );
+  const H2 = ({ children }) => (
+    <div style={{ fontFamily:PX, fontSize:13, color:gold, lineHeight:1.8, marginBottom:16, textAlign:"center" }}>{children}</div>
+  );
+
+  const methods = [
+    { icon:"🎯", title:"Accuracy First", sub:"Speed Second",
+      body:"Children master each concept at their own pace before any time pressure is introduced — matching the evidence-based Kumon and Singapore Maths methods.",
+      science:"Research shows that drilling for speed before accuracy is cemented leads to maths anxiety. Our two-phase system ensures understanding comes first.",
+      color:"#22c55e" },
+    { icon:"🔄", title:"Spaced Repetition", sub:"Never Forget",
+      body:"Mastered topics are automatically reintroduced during later sessions so knowledge sticks in long-term memory — not just cramming for the next test.",
+      science:"Spaced practice is one of the most replicated findings in cognitive science (Ebbinghaus, 1885 — Cepeda et al., 2006). We schedule review automatically.",
+      color:"#3b82f6" },
+    { icon:"⚡", title:"Interleaved Practice", sub:"Mix It Up",
+      body:"Questions from recently mastered levels are woven into each new session — proven to improve retention by up to 40% compared to blocked practice.",
+      science:"Rohrer & Taylor (2007) found interleaved maths practice outperformed blocked practice on delayed tests by a significant margin.",
+      color:"#a855f7" },
+  ];
+
+  const features = [
+    { icon:"🤖", title:"AI Hint System",       body:"Claude AI gives personalised hints — never just the answer. Teaches children how to think, not just what to write.", color:"#7c3aed" },
+    { icon:"🏆", title:"40+ Badges & Trophies", body:"From 'First Step' to 'Grandmaster' — a full progression system that keeps children motivated and proud.", color:"#f59e0b" },
+    { icon:"🔥", title:"Daily Streaks & Coins", body:"Built-in habit loop. Coins for every correct answer, streaks for daily practice, daily bonus quest to beat.", color:"#ef4444" },
+    { icon:"📊", title:"Parent Dashboard",      body:"AI progress reports, goal tracking, session history and a goal-check feature so parents stay fully in the loop.", color:"#06b6d4" },
+    { icon:"📸", title:"Homework Scanner",      body:"Photograph any worksheet and the app turns it into interactive practice — perfect for school homework nights.", color:"#22c55e" },
+    { icon:"🗺 ", title:"36-Level Journey",      body:"From +1 facts all the way to mixed multiplication and division — a complete KS1 & KS2 journey mapped out.", color:"#f97316" },
+  ];
+
+  const steps = [
+    { n:"01", title:"Take the Placement Test", body:"A quick 3-question-per-stage adaptive test places your child at exactly the right level — no guesswork.", color:gold },
+    { n:"02", title:"Pick Your Hero",          body:"Choose from 5 pixel art characters. Your hero cheers you on, reacts to correct answers, and grows with you.", color:purpleLight },
+    { n:"03", title:"Level Up Every Day",      body:"Work through accuracy phases, then speed phases. Earn coins, badges and unlock new zones as you master each skill.", color:"#22c55e" },
+  ];
+
+  return (
+    <div style={{ background:bg, color:text, fontFamily:NU, overflowX:"hidden" }}>
+
+      {/* ── HERO ── */}
+      <div style={{ position:"relative", minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center",
+        backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", padding:24 }}>
+        <div style={{ position:"absolute", inset:0, background:"rgba(13,10,26,0.78)" }} />
+        <div style={{ position:"relative", textAlign:"center", maxWidth:680 }}>
+          <img src="/logo-crest.png" alt="Get Maths Mastery crest"
+            style={{ imageRendering:"pixelated", width:96, height:96, marginBottom:16,
+              filter:"drop-shadow(0 0 20px rgba(251,191,36,0.5))" }} />
+          <div style={{ fontFamily:PX, fontSize:10, color:textSub, letterSpacing:3, marginBottom:10, lineHeight:2 }}>
+            FREE · NO ADS · NO SUBSCRIPTION
+          </div>
+          <h1 style={{ fontFamily:PX, fontSize:22, color:gold, lineHeight:1.6, marginBottom:8,
+            textShadow:"0 0 32px rgba(251,191,36,0.7), 0 0 64px rgba(251,191,36,0.3)" }}>
+            Get Maths<br/>Mastery
+          </h1>
+          <p style={{ fontSize:18, fontWeight:800, color:text, lineHeight:1.7, marginBottom:8 }}>
+            The RPG maths app that turns practice into an adventure.
+          </p>
+          <p style={{ fontSize:14, color:textSub, fontWeight:700, lineHeight:1.7, marginBottom:32, maxWidth:480, margin:"0 auto 32px" }}>
+            Science-backed methodology. AI-powered hints. 40+ badges to earn.
+            Built for KS1 &amp; KS2 children who want to level up.
+          </p>
+          <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
+            <button onClick={onStart} style={{ border:`4px solid ${gold}`, background:gold, color:"#111",
+              fontFamily:PX, fontSize:10, padding:"16px 28px", cursor:"pointer",
+              boxShadow:`6px 6px 0 #92400e`, lineHeight:1.8, transition:"transform 0.07s" }}
+              onMouseEnter={e=>e.target.style.transform="translate(2px,2px)"}
+              onMouseLeave={e=>e.target.style.transform=""}>
+              Start Free →
+            </button>
+            <button onClick={onReturn} style={{ border:`4px solid ${border}`, background:"rgba(255,255,255,0.07)", color:text,
+              fontFamily:PX, fontSize:10, padding:"16px 28px", cursor:"pointer",
+              boxShadow:`6px 6px 0 #06030f`, lineHeight:1.8 }}>
+              I have a PIN
+            </button>
+          </div>
+          <div style={{ marginTop:40, display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
+            {["KS1 & KS2","36 Levels","AI Hints","Free Forever"].map(t => (
+              <div key={t} style={{ fontSize:12, fontWeight:800, color:textSub, display:"flex", alignItems:"center", gap:6 }}>
+                <span style={{ color:gold }}>★</span> {t}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── CHARACTERS ── */}
+      <div style={{ background:bgAlt, borderTop:`3px solid ${border}`, borderBottom:`3px solid ${border}`, padding:"48px 20px" }}>
+        <Section>
+          <Tag>Choose your hero</Tag>
+          <H2>Who will you become?</H2>
+          <p style={{ textAlign:"center", color:textSub, fontWeight:700, fontSize:14, marginBottom:32, maxWidth:520, margin:"0 auto 32px" }}>
+            Every player picks a pixel art character at signup. Your hero reacts to correct answers and cheers you on through every level.
+          </p>
+          <div style={{ display:"flex", justifyContent:"center", gap:16, flexWrap:"wrap" }}>
+            {CHARACTERS.map(ch => (
+              <div key={ch.id} style={{ textAlign:"center", padding:"16px 12px", border:`3px solid ${border}`,
+                background:bg, minWidth:100, flex:"0 0 auto" }}>
+                <img src={`/char-${ch.id}.png`} alt={ch.label}
+                  style={{ imageRendering:"pixelated", width:72, height:72, display:"block", margin:"0 auto 8px",
+                    filter:`drop-shadow(0 0 8px ${ch.color}66)` }} />
+                <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
+                <div style={{ fontSize:11, color:textSub, fontWeight:700, marginTop:4 }}>{ch.desc}</div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
+
+      {/* ── THE METHOD ── */}
+      <div style={{ padding:"64px 20px" }}>
+        <Section>
+          <div style={{ textAlign:"center", marginBottom:48 }}>
+            <Tag>The science</Tag>
+            <H2>Why it actually works</H2>
+            <p style={{ color:textSub, fontWeight:700, fontSize:14, maxWidth:560, margin:"0 auto", lineHeight:1.7 }}>
+              Most maths apps focus on engagement. We focus on <em style={{ color:gold }}>retention</em>. Every part of Get Maths Mastery is built on peer-reviewed cognitive science.
+            </p>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))", gap:20 }}>
+            {methods.map(m => (
+              <div key={m.title} style={{ background:bgAlt, border:`3px solid ${border}`,
+                boxShadow:`4px 4px 0 #06030f`, padding:24 }}>
+                <div style={{ fontSize:32, marginBottom:12 }}>{m.icon}</div>
+                <div style={{ fontFamily:PX, fontSize:10, color:m.color, lineHeight:1.8, marginBottom:4 }}>{m.title}</div>
+                <div style={{ fontSize:11, color:textSub, fontWeight:800, marginBottom:12 }}>{m.sub}</div>
+                <p style={{ fontSize:13, color:text, fontWeight:700, lineHeight:1.7, marginBottom:16 }}>{m.body}</p>
+                <div style={{ padding:"10px 14px", background:`${m.color}11`, border:`2px solid ${m.color}44`,
+                  fontSize:11, color:textSub, fontWeight:700, lineHeight:1.6, fontStyle:"italic" }}>
+                  📖 {m.science}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
+
+      {/* ── FEATURES ── */}
+      <div style={{ background:bgAlt, borderTop:`3px solid ${border}`, borderBottom:`3px solid ${border}`, padding:"64px 20px" }}>
+        <Section>
+          <div style={{ textAlign:"center", marginBottom:48 }}>
+            <Tag color={purpleLight}>Everything included</Tag>
+            <H2>Packed with features</H2>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))", gap:20 }}>
+            {features.map(f => (
+              <div key={f.title} style={{ background:bg, border:`3px solid ${border}`,
+                boxShadow:`4px 4px 0 #06030f`, padding:24, display:"flex", gap:16, alignItems:"flex-start" }}>
+                <div style={{ fontSize:28, flexShrink:0, lineHeight:1 }}>{f.icon}</div>
+                <div>
+                  <div style={{ fontFamily:PX, fontSize:9, color:f.color, lineHeight:1.8, marginBottom:6 }}>{f.title}</div>
+                  <p style={{ fontSize:13, color:textSub, fontWeight:700, lineHeight:1.6, margin:0 }}>{f.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
+
+      {/* ── HOW IT WORKS ── */}
+      <div style={{ padding:"64px 20px" }}>
+        <Section>
+          <div style={{ textAlign:"center", marginBottom:48 }}>
+            <Tag color="#22c55e">Simple start</Tag>
+            <H2>Up and running in 2 minutes</H2>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(240px, 1fr))", gap:20 }}>
+            {steps.map(s => (
+              <div key={s.n} style={{ background:bgAlt, border:`3px solid ${border}`,
+                boxShadow:`4px 4px 0 #06030f`, padding:28, textAlign:"center" }}>
+                <div style={{ fontFamily:PX, fontSize:28, color:`${s.color}44`, lineHeight:1, marginBottom:12 }}>{s.n}</div>
+                <div style={{ fontFamily:PX, fontSize:9, color:s.color, lineHeight:1.8, marginBottom:10 }}>{s.title}</div>
+                <p style={{ fontSize:13, color:textSub, fontWeight:700, lineHeight:1.6, margin:0 }}>{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
+
+      {/* ── CURRICULUM STRIP ── */}
+      <div style={{ background:bgAlt, borderTop:`3px solid ${border}`, borderBottom:`3px solid ${border}`, padding:"40px 20px" }}>
+        <Section>
+          <H2>Full KS1 & KS2 curriculum covered</H2>
+          <div style={{ display:"flex", gap:10, flexWrap:"wrap", justifyContent:"center" }}>
+            {CURRICULUM.map(s => (
+              <div key={s.id} style={{ padding:"8px 16px", border:`2px solid ${s.color}66`, background:`${s.color}11`,
+                fontFamily:PX, fontSize:7, color:s.color, lineHeight:2 }}>
+                {s.name}
+              </div>
+            ))}
+          </div>
+          <p style={{ textAlign:"center", color:textSub, fontWeight:700, fontSize:13, marginTop:20 }}>
+            36 levels across 7 zones · Adaptive placement · No wasted time
+          </p>
+        </Section>
+      </div>
+
+      {/* ── FINAL CTA ── */}
+      <div style={{ position:"relative", padding:"80px 20px", backgroundImage:"url('/backdrop-1.png')",
+        backgroundSize:"cover", backgroundPosition:"center bottom" }}>
+        <div style={{ position:"absolute", inset:0, background:"rgba(13,10,26,0.85)" }} />
+        <div style={{ position:"relative", textAlign:"center" }}>
+          <img src="/logo-crest.png" alt="" style={{ imageRendering:"pixelated", width:72, marginBottom:16,
+            filter:"drop-shadow(0 0 16px rgba(251,191,36,0.5))" }} />
+          <div style={{ fontFamily:PX, fontSize:14, color:gold, lineHeight:1.8, marginBottom:12 }}>
+            Ready to begin?
+          </div>
+          <p style={{ fontSize:15, color:text, fontWeight:800, lineHeight:1.7, marginBottom:32, maxWidth:460, margin:"0 auto 32px" }}>
+            Free forever. No ads. No subscription. Just maths mastery.
+          </p>
+          <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
+            <button onClick={onStart} style={{ border:`4px solid ${gold}`, background:gold, color:"#111",
+              fontFamily:PX, fontSize:10, padding:"16px 32px", cursor:"pointer",
+              boxShadow:`6px 6px 0 #92400e`, lineHeight:1.8 }}
+              onMouseEnter={e=>e.target.style.transform="translate(2px,2px)"}
+              onMouseLeave={e=>e.target.style.transform=""}>
+              Start your quest →
+            </button>
+            <button onClick={onReturn} style={{ border:`4px solid ${border}`, background:"rgba(255,255,255,0.07)", color:text,
+              fontFamily:PX, fontSize:10, padding:"16px 32px", cursor:"pointer",
+              boxShadow:`6px 6px 0 #06030f`, lineHeight:1.8 }}>
+              I have a PIN
+            </button>
+          </div>
+          <p style={{ marginTop:24, fontSize:12, color:textSub, fontWeight:700 }}>
+            getmathsmastery.com · Built with love for curious kids
+          </p>
+        </div>
+      </div>
+
+    </div>
+  );
 }
 
 // ── WelcomeScreen ─────────────────────────────────────────────────────────────
@@ -778,7 +1029,8 @@ function loadState() {
   const activeProfileId = s?.activeProfileId || "";
   const appSettings = { ...DEFAULT_APP_SETTINGS, ...(s?.appSettings || {}) };
   // Determine initial phase
-  let initialPhase = PHASE.WELCOME;
+  const hasExistingProfile = (syncPin && profiles[activeProfileId]) || (!syncPin && activeProfileId && profiles[activeProfileId]);
+  let initialPhase = hasExistingProfile ? PHASE.WELCOME : PHASE.LANDING;
   if (syncPin && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
   else if (syncPin && profiles[activeProfileId]) initialPhase = PHASE.PLACEMENT;
   else if (!syncPin && activeProfileId && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
@@ -1464,6 +1716,7 @@ export default function App() {
   const stateColor = { [LS.LOCKED]:C.textDim, [LS.ACCURACY]:C.purple, [LS.SPEED]:C.gold, [LS.MASTERED]:C.green };
 
   // ── Phase routing ────────────────────────────────────────────────────────────
+  if (appPhase === PHASE.LANDING) return <LandingPage onStart={() => setAppPhase(PHASE.SIGNUP)} onReturn={() => setAppPhase(PHASE.PIN_ENTRY)} />;
   if (appPhase === PHASE.WELCOME) return <WelcomeScreen onNew={() => setAppPhase(PHASE.SIGNUP)} onReturn={() => setAppPhase(PHASE.PIN_ENTRY)} />;
   if (appPhase === PHASE.SIGNUP) return <SignupScreen onComplete={handleSignup} onBack={() => setAppPhase(PHASE.WELCOME)} />;
   if (appPhase === PHASE.PIN_ENTRY) return <PinEntryScreen onSubmit={handlePinEntry} onBack={() => setAppPhase(PHASE.WELCOME)} loading={pinLoading} error={pinLoadError} />;
