@@ -478,17 +478,17 @@ function LandingPage({ onStart, onReturn }) {
             Built for KS1 &amp; KS2 children who want to level up.
           </p>
           <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap", marginBottom:24 }}>
-            <button onClick={onStart} style={{ border:`4px solid ${gold}`, background:gold, color:"#111",
+            <button onClick={onStart} className="fun-btn action-btn-pulse"
+              style={{ border:`4px solid ${gold}`, background:gold, color:"#111",
               fontFamily:PX, fontSize:10, padding:"14px 24px", cursor:"pointer",
-              boxShadow:`5px 5px 0 #92400e`, lineHeight:1.8 }}
-              onMouseEnter={e=>e.target.style.transform="translate(2px,2px)"}
-              onMouseLeave={e=>e.target.style.transform=""}>
-              Start Free →
+              boxShadow:`5px 5px 0 #92400e`, lineHeight:1.8 }}>
+              Begin Your Quest →
             </button>
-            <button onClick={onReturn} style={{ border:`4px solid ${border}`, background:"rgba(255,255,255,0.07)", color:text,
+            <button onClick={onReturn} className="fun-btn"
+              style={{ border:`4px solid ${border}`, background:"rgba(255,255,255,0.07)", color:text,
               fontFamily:PX, fontSize:10, padding:"14px 24px", cursor:"pointer",
               boxShadow:`5px 5px 0 #06030f`, lineHeight:1.8 }}>
-              I have a PIN
+              Sign In
             </button>
           </div>
           <div style={{ display:"flex", justifyContent:"center", gap:20, flexWrap:"wrap", marginBottom:32 }}>
