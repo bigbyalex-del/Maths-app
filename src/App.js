@@ -870,6 +870,23 @@ export default function App() {
   const [lockedAnswers, setLockedAnswers] = useState(new Set()); // indices locked after first entry
   const [currentPage, setCurrentPage] = useState(0); // 0, 1, 2
   const [hints, setHints] = useState({}); // { [i]: { loading: bool, text: string|null } }
+  // AI features
+  const [levelIntros, setLevelIntros] = useState({});
+  const [mistakeInsight, setMistakeInsight] = useState(null);
+  const [dailyChallenge, setDailyChallenge] = useState(null);
+  const [dailyAnswer, setDailyAnswer] = useState("");
+  const [customPackTopic, setCustomPackTopic] = useState("");
+  const [customPackLoading, setCustomPackLoading] = useState(false);
+  const [customProblems, setCustomProblems] = useState(null); // array when active, null = use normal
+  const [customPackLabel, setCustomPackLabel] = useState("");
+  const [progressQuery, setProgressQuery] = useState("");
+  const [progressResponse, setProgressResponse] = useState(null);
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [homeworkLoading, setHomeworkLoading] = useState(false);
+  const [goalInput, setGoalInput] = useState("");
+  const [goalDeadlineInput, setGoalDeadlineInput] = useState("");
+  const [goalAssessment, setGoalAssessment] = useState(null);
+  const [goalLoading, setGoalLoading] = useState(false);
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -912,7 +929,8 @@ export default function App() {
   const overallPct = Math.round((masteredCount / flatLevels.length) * 100);
   const todayDate = new Date().toLocaleDateString();
 
-  const problems = useMemo(() => buildProblems(currentLevelId, masteredIds, isSpeedPhase), [currentLevelId, masteredIds, isSpeedPhase]);
+  const generatedProblems = useMemo(() => buildProblems(currentLevelId, masteredIds, isSpeedPhase), [currentLevelId, masteredIds, isSpeedPhase]);
+  const problems = customProblems !== null ? customProblems : generatedProblems;
 
   useEffect(() => { safeWrite({ profiles, activeProfileId, appSettings, syncPin }); }, [profiles, activeProfileId, appSettings, syncPin]);
 
@@ -956,6 +974,42 @@ export default function App() {
   }, [answers, problems]);
 
   const hasAny = useMemo(() => Object.values(answers).some(v => String(v || "").trim() !== ""), [answers]);
+
+  // Level intro — fetch once per level
+  useEffect(() => {
+    if (!currentLevelId || levelIntros[currentLevelId]) return;
+    setLevelIntros(prev => ({ ...prev, [currentLevelId]: "loading" }));
+    fetch("/.netlify/functions/level-intro", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ levelTitle: currentLevel.title, sectionName: currentLevel.sectionName, skill: currentLevel.skill }),
+    }).then(r => r.json()).then(d => {
+      setLevelIntros(prev => ({ ...prev, [currentLevelId]: d.intro || "" }));
+    }).catch(() => setLevelIntros(prev => ({ ...prev, [currentLevelId]: "" })));
+  }, [currentLevelId]); // eslint-disable-line
+
+  // Daily challenge — load once per day per profile
+  useEffect(() => {
+    if (!activeProfileId || !currentLevel) return;
+    const key = `daily-challenge-${activeProfileId}-${todayDate}`;
+    const cached = JSON.parse(localStorage.getItem(key) || "null");
+    if (cached) { setDailyChallenge(cached); return; }
+    fetch("/.netlify/functions/daily-challenge", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ levelTitle: currentLevel.title, sectionName: currentLevel.sectionName, skill: currentLevel.skill }),
+    }).then(r => r.json()).then(d => {
+      if (d.a != null) {
+        const challenge = { ...d, completed: false, date: todayDate };
+        setDailyChallenge(challenge);
+        localStorage.setItem(key, JSON.stringify(challenge));
+      }
+    }).catch(() => {});
+  }, [activeProfileId, todayDate]); // eslint-disable-line
+
+  // Sync goal inputs when profile changes
+  useEffect(() => {
+    setGoalInput(profile.goal || "");
+    setGoalDeadlineInput(profile.goalDeadline || "");
+  }, [activeProfileId]); // eslint-disable-line
 
   useEffect(() => {
     if (done) return;
@@ -1041,11 +1095,123 @@ export default function App() {
     setShowCelebration(false);
     setLastResult(null);
     setHints({});
+    setDailyAnswer("");
     setTimeout(() => focusQuestion(0), 0);
   }
 
   function lockAnswer(i) {
     setLockedAnswers(prev => new Set([...prev, i]));
+  }
+
+  function loadCustomPack(questions, label) {
+    setCustomProblems(questions);
+    setCustomPackLabel(label);
+    startSession();
+    setActiveTab("dashboard");
+  }
+
+  function exitCustomPack() {
+    setCustomProblems(null);
+    setCustomPackLabel("");
+    startSession();
+  }
+
+  function completeDailyChallenge() {
+    const key = `daily-challenge-${activeProfileId}-${todayDate}`;
+    const updated = { ...dailyChallenge, completed: true };
+    setDailyChallenge(updated);
+    localStorage.setItem(key, JSON.stringify(updated));
+    setDailyAnswer("");
+  }
+
+  async function fetchMistakeInsight() {
+    if (!history || history.length < 5) return;
+    try {
+      const res = await fetch("/.netlify/functions/analyze-mistakes", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ history: history.slice(0, 10), name: profile.name }),
+      });
+      const data = await res.json();
+      if (data.insight) setMistakeInsight(data.insight);
+    } catch {}
+  }
+
+  async function generateCustomPack() {
+    if (!customPackTopic.trim()) return;
+    setCustomPackLoading(true);
+    try {
+      const res = await fetch("/.netlify/functions/custom-questions", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: customPackTopic.trim(), count: 36 }),
+      });
+      const data = await res.json();
+      if (data.questions?.length > 0) {
+        loadCustomPack(data.questions, customPackTopic.trim());
+        setCustomPackTopic("");
+      }
+    } catch {}
+    setCustomPackLoading(false);
+  }
+
+  async function askProgressQuestion() {
+    if (!progressQuery.trim()) return;
+    setProgressLoading(true);
+    try {
+      const res = await fetch("/.netlify/functions/progress-chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: progressQuery.trim(),
+          name: profile.name,
+          history, streak, masteredCount,
+          totalLevels: flatLevels.length,
+          currentLevel: currentLevel.title,
+        }),
+      });
+      const data = await res.json();
+      setProgressResponse(data.response || "");
+    } catch { setProgressResponse("Sorry, couldn't get a response."); }
+    setProgressLoading(false);
+  }
+
+  async function processHomework(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setHomeworkLoading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const base64 = ev.target.result.split(",")[1];
+        const mediaType = file.type || "image/jpeg";
+        const res = await fetch("/.netlify/functions/homework-helper", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: base64, mediaType }),
+        });
+        const data = await res.json();
+        if (data.questions?.length > 0) {
+          loadCustomPack(data.questions, "Homework");
+        }
+        setHomeworkLoading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch { setHomeworkLoading(false); }
+  }
+
+  async function checkGoalProgress() {
+    if (!goalInput.trim()) return;
+    setGoalLoading(true);
+    try {
+      const res = await fetch("/.netlify/functions/goal-check", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: profile.name, goal: goalInput, deadline: goalDeadlineInput,
+          masteredCount, totalLevels: flatLevels.length,
+          currentLevel: currentLevel.title, history, streak,
+        }),
+      });
+      const data = await res.json();
+      setGoalAssessment(data.assessment || "");
+    } catch { setGoalAssessment("Could not check progress. Please try again."); }
+    setGoalLoading(false);
   }
 
   async function fetchHint(i, p, userAnswer) {
@@ -1150,18 +1316,24 @@ export default function App() {
     }).sort((a, b) => b.ms - a.ms);
     const avgMs = timings.length ? Math.round(timings.reduce((s, t) => s + t.ms, 0) / timings.length) : 0;
 
+    // Track wrong questions for mistake analysis
+    const wrongQuestions = problems.map((p, i) => {
+      const val = answers[i] || "";
+      return val !== "" && normalizeAnswer(val) !== normalizeAnswer(p.answer) ? `${p.a} ${p.op} ${p.b}` : null;
+    }).filter(Boolean).slice(0, 10);
+
     updateProfile({
       totalQuestions: newTotalQ,
       streak: newStreak,
       bestStreak: Math.max(bestStreak, newStreak),
       lastCompletedDate: todayDate,
-      levelProgress: newLevelProgress,
+      levelProgress: customProblems ? levelProgress : newLevelProgress, // don't advance level on custom packs
       badges: [...badges, ...newBadges],
       history: [{
         id: `${Date.now()}`,
         date: todayDate,
-        levelTitle: currentLevel.title,
-        sectionName: currentLevel.sectionName,
+        levelTitle: customProblems ? `Custom: ${customPackLabel}` : currentLevel.title,
+        sectionName: customProblems ? "Custom Pack" : currentLevel.sectionName,
         phase: isSpeedPhase ? "Speed" : "Accuracy",
         timeLabel: formatTime(time),
         seconds: time,
@@ -1172,8 +1344,10 @@ export default function App() {
         passed,
         onTime,
         slowest: timings.slice(0, 3),
+        wrong: wrongQuestions,
       }, ...history].slice(0, 60),
     });
+    setTimeout(() => fetchMistakeInsight(), 1000);
 
     const encouragement = getEncouragement(accuracy, time, currentLevel.masteryTime, isSpeedPhase, newSpeedPasses);
     const shouldCelebrate = (passed && !isSpeedPhase) || (passed && onTime);
@@ -1336,6 +1510,21 @@ export default function App() {
                 </div>
               )}
 
+              {/* AI level intro */}
+              {levelIntros[currentLevelId] && levelIntros[currentLevelId] !== "loading" && !customProblems && (
+                <div style={{ marginTop:10, padding:"10px 14px", background:"#f0fdf4", border:"2px solid #86efac", fontSize:13, color:"#166534", fontStyle:"italic" }}>
+                  🧙 {levelIntros[currentLevelId]}
+                </div>
+              )}
+
+              {/* Custom pack indicator */}
+              {customProblems && (
+                <div style={{ marginTop:10, padding:"10px 14px", background:"#fef3c7", border:"2px solid #fbbf24", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:12, fontWeight:700, color:"#92400e" }}>📦 Custom Pack: {customPackLabel}</span>
+                  <button onClick={exitCustomPack} style={{ fontSize:10, padding:"3px 8px", background:"#fff", border:"1.5px solid #fbbf24", borderRadius:6, cursor:"pointer", fontWeight:700, color:"#92400e" }}>✕ Exit</button>
+                </div>
+              )}
+
               {/* Mastery requirements explanation */}
               <div style={{ marginTop:10, padding:"10px 14px", background:"#f9fafb", border:"2px solid #e5e7eb", fontSize:12, fontWeight:700, color:"#374151" }}>
                 {isAccuracyPhase && `Phase 1 — Accuracy: Get ${ACCURACY_THRESHOLD}%+ correct to unlock Phase 2 (Speed)`}
@@ -1344,6 +1533,39 @@ export default function App() {
                 {levelState === LS.LOCKED && "Complete the previous level to unlock this one."}
               </div>
             </div>
+
+            {/* Daily challenge card */}
+            {dailyChallenge && (
+              <div style={{ ...S.card, borderLeft:"6px solid #f59e0b", background: dailyChallenge.completed ? "#f0fdf4" : "#fffbeb" }}>
+                <div style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:"#92400e", marginBottom:4, lineHeight:1.8 }}>⭐ Daily Challenge</div>
+                {dailyChallenge.flavour && <div style={{ fontSize:12, color:"#78350f", marginBottom:8, fontStyle:"italic" }}>{dailyChallenge.flavour}</div>}
+                {dailyChallenge.completed ? (
+                  <div style={{ fontSize:14, fontWeight:900, color:"#16a34a" }}>✓ Challenge complete! Well done! 🌟</div>
+                ) : (
+                  <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:20, fontWeight:900 }}>{dailyChallenge.a} {dailyChallenge.op} {dailyChallenge.b} = </span>
+                    <input
+                      value={dailyAnswer}
+                      inputMode="decimal"
+                      onChange={e => setDailyAnswer(e.target.value.replace(/[^0-9./-]/g, ""))}
+                      onKeyDown={e => { if (e.key === "Enter" && dailyAnswer !== "") { if (String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); } }}
+                      style={{ width:64, padding:"6px 8px", fontSize:16, fontWeight:900, border:"2px solid #f59e0b", borderRadius:6, textAlign:"center" }}
+                      placeholder="?"
+                    />
+                    <button onClick={() => { if (dailyAnswer !== "" && String(dailyAnswer).trim() === String(dailyChallenge.answer)) completeDailyChallenge(); else setDailyAnswer(""); }}
+                      className="fun-btn" style={S.btn("#f59e0b","#92400e")}>Check</button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mistake insight */}
+            {mistakeInsight && (
+              <div style={{ ...S.card, background:"#fdf4ff", borderLeft:"6px solid #a855f7" }}>
+                <div style={{ fontSize:10, fontWeight:900, fontFamily:PX, color:"#7e22ce", marginBottom:4, lineHeight:1.8 }}>🔮 AI Insight</div>
+                <div style={{ fontSize:13, color:"#4b5563", fontStyle:"italic" }}>{mistakeInsight}</div>
+              </div>
+            )}
 
             {/* Worksheet */}
             {(() => {
@@ -1835,6 +2057,80 @@ export default function App() {
                   <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginTop:10 }}>
                     <button onClick={() => resetProfile(activeProfileId)} className="fun-btn" style={S.btn("#ef4444","#7f1d1d")}>Reset My Progress</button>
                   </div>
+                </div>
+
+                {/* ── AI Parent Features ── */}
+                <div style={{ ...S.flat, marginBottom:14 }}>
+                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>🤖 Progress Chat</div>
+                  <p style={S.sub}>Ask Claude anything about {profile.name}'s progress.</p>
+                  <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
+                    <input value={progressQuery} onChange={e => setProgressQuery(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") askProgressQuestion(); }}
+                      placeholder={`e.g. "How is ${profile.name} doing?"`}
+                      style={{ ...S.settingInp, flex:1, minWidth:200 }} />
+                    <button onClick={askProgressQuestion} disabled={progressLoading} className="fun-btn" style={S.btn()}>
+                      {progressLoading ? "…" : "Ask"}
+                    </button>
+                  </div>
+                  {progressResponse && (
+                    <div style={{ marginTop:10, padding:"10px 14px", background:"#f0f9ff", border:"2px solid #bae6fd", fontSize:13, color:"#0c4a6e", lineHeight:1.6 }}>
+                      {progressResponse}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ ...S.flat, marginBottom:14 }}>
+                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>📦 Custom Question Pack</div>
+                  <p style={S.sub}>Type a topic and Claude generates 36 questions.</p>
+                  <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
+                    <input value={customPackTopic} onChange={e => setCustomPackTopic(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") generateCustomPack(); }}
+                      placeholder="e.g. 7 times table, adding to 100…"
+                      style={{ ...S.settingInp, flex:1, minWidth:200 }} />
+                    <button onClick={generateCustomPack} disabled={customPackLoading} className="fun-btn" style={S.btn()}>
+                      {customPackLoading ? "Generating…" : "Generate"}
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ ...S.flat, marginBottom:14 }}>
+                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>📷 Homework Helper</div>
+                  <p style={S.sub}>Take a photo of a maths worksheet — Claude turns it into a practice session.</p>
+                  <div style={{ marginTop:10 }}>
+                    <label style={{ display:"inline-block", padding:"8px 16px", background:"#4c2f9e", color:"#fff", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:13 }}>
+                      {homeworkLoading ? "Reading worksheet…" : "📷 Upload Photo"}
+                      <input type="file" accept="image/*" capture="environment" onChange={processHomework}
+                        style={{ display:"none" }} disabled={homeworkLoading} />
+                    </label>
+                  </div>
+                </div>
+
+                <div style={S.flat}>
+                  <div style={{ fontWeight:900, fontSize:16, marginBottom:4 }}>🎯 Goal Setting</div>
+                  <p style={S.sub}>Set a learning goal and check if {profile.name} is on track.</p>
+                  <div style={{ marginTop:10, display:"flex", flexDirection:"column", gap:8, maxWidth:400 }}>
+                    <input value={goalInput} onChange={e => setGoalInput(e.target.value)}
+                      placeholder="e.g. Master all times tables"
+                      style={{ ...S.settingInp, width:"100%" }} />
+                    <input type="date" value={goalDeadlineInput} onChange={e => setGoalDeadlineInput(e.target.value)}
+                      style={{ ...S.settingInp, width:"100%" }} />
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                      <button onClick={() => { updateProfile({ goal: goalInput, goalDeadline: goalDeadlineInput }); }} className="fun-btn" style={S.btn("#16a34a","#14532d")}>Save Goal</button>
+                      <button onClick={checkGoalProgress} disabled={goalLoading} className="fun-btn" style={S.btn()}>
+                        {goalLoading ? "Checking…" : "Check Progress"}
+                      </button>
+                    </div>
+                  </div>
+                  {goalAssessment && (
+                    <div style={{ marginTop:10, padding:"10px 14px", background:"#f0fdf4", border:"2px solid #86efac", fontSize:13, color:"#166534", lineHeight:1.6 }}>
+                      {goalAssessment}
+                    </div>
+                  )}
+                  {profile.goal && (
+                    <div style={{ marginTop:8, fontSize:12, color:"#6b7280" }}>
+                      Current goal: <strong>{profile.goal}</strong>{profile.goalDeadline ? ` by ${profile.goalDeadline}` : ""}
+                    </div>
+                  )}
                 </div>
               </>
             )}
