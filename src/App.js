@@ -1919,9 +1919,9 @@ export default function App() {
                 </div>
               </div>
 
-              <button onClick={() => { if (window.confirm("Switch user? You'll go back to the login screen.")) { setAppPhase(PHASE.WELCOME); } }} className="fun-btn"
+              <button onClick={() => { setStaySignedIn(false); setAppPhase(PHASE.LANDING); }} className="fun-btn"
                 style={{ border:`2px solid ${C.border}`, padding:"9px 14px", cursor:"pointer", fontFamily:PX, fontSize:8, lineHeight:1.8, background:C.bgAlt, color:C.textSub, boxShadow:SD, alignSelf:"flex-start", flexShrink:0 }}>
-                Switch User
+                Sign Out
               </button>
             </div>
 
