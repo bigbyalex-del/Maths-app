@@ -785,23 +785,29 @@ function SignupScreen({ onComplete, onBack }) {
 function PinEntryScreen({ onSubmit, onBack, loading, error }) {
   const PX = "'Press Start 2P', monospace";
   const [pin, setPin] = useState("");
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
   return (
     <div style={{ minHeight:"100vh", backgroundImage:"url('/backdrop-1.png')", backgroundSize:"cover", backgroundPosition:"center", display:"flex", alignItems:"center", justifyContent:"center", padding:16, fontFamily:"'Nunito',sans-serif" }}>
       <div style={{ background:"rgba(10,10,30,0.88)", border:"4px solid #ffd700", boxShadow:"8px 8px 0 #000", padding:32, maxWidth:400, width:"100%", textAlign:"center", backdropFilter:"blur(2px)" }}>
         <div style={{ fontSize:48, marginBottom:12 }}>🔑</div>
-        <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:16 }}>Enter your PIN</div>
-        <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, marginBottom:20 }}>Type your 6-digit PIN to load your progress on this device.</p>
+        <div style={{ fontFamily:PX, fontSize:11, color:"#ffd700", marginBottom:16 }}>Sign in</div>
+        <p style={{ fontSize:13, color:"#c7d2fe", fontWeight:700, marginBottom:20 }}>Type your 6-digit PIN to load your progress.</p>
         <input autoFocus type="number" inputMode="numeric" value={pin}
           onChange={e => setPin(e.target.value.replace(/\D/g,"").slice(0,6))}
-          onKeyDown={e => e.key==="Enter" && pin.length===6 && onSubmit(pin)}
+          onKeyDown={e => e.key==="Enter" && pin.length===6 && onSubmit(pin, keepSignedIn)}
           style={{ border:"3px solid #ffd700", padding:"12px", fontSize:28, fontFamily:"monospace", letterSpacing:8, textAlign:"center", width:"100%", boxSizing:"border-box", marginBottom:16, background:"rgba(255,255,255,0.1)", color:"#fff" }}
           placeholder="——————" maxLength={6} />
         {error && <p style={{ color:"#ef4444", fontWeight:800, fontSize:13, marginBottom:12 }}>{error}</p>}
+        <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, marginBottom:20, cursor:"pointer" }}>
+          <input type="checkbox" checked={keepSignedIn} onChange={e => setKeepSignedIn(e.target.checked)}
+            style={{ width:18, height:18, accentColor:"#fbbf24", cursor:"pointer" }} />
+          <span style={{ fontSize:13, fontWeight:800, color:"#c7d2fe" }}>Stay signed in on this device</span>
+        </label>
         <div style={{ display:"flex", gap:10 }}>
           <button onClick={onBack} style={{ border:"3px solid rgba(255,255,255,0.3)", background:"rgba(255,255,255,0.1)", color:"#e2e8f0", fontFamily:PX, fontSize:9, padding:"12px 14px", cursor:"pointer" }}>Back</button>
-          <button onClick={() => onSubmit(pin)} disabled={pin.length!==6||loading}
+          <button onClick={() => onSubmit(pin, keepSignedIn)} disabled={pin.length!==6||loading}
             style={{ flex:1, border:"4px solid #ffd700", background: pin.length===6&&!loading?"#ffd700":"rgba(255,255,255,0.1)", color: pin.length===6&&!loading?"#111":"#9ca3af", fontFamily:PX, fontSize:10, padding:"12px", cursor: pin.length===6&&!loading?"pointer":"not-allowed", boxShadow: pin.length===6&&!loading?"5px 5px 0 #b8860b":"none" }}>
-            {loading ? "Loading…" : "Load Progress"}
+            {loading ? "Loading…" : "Sign in"}
           </button>
         </div>
       </div>
@@ -1026,13 +1032,15 @@ function loadState() {
   }
   const activeProfileId = s?.activeProfileId || "";
   const appSettings = { ...DEFAULT_APP_SETTINGS, ...(s?.appSettings || {}) };
+  // staySignedIn: default true for existing users (backwards compat), explicit false = show landing
+  const staySignedIn = s?.staySignedIn !== false;
   // Determine initial phase
   const hasExistingProfile = (syncPin && profiles[activeProfileId]) || (!syncPin && activeProfileId && profiles[activeProfileId]);
-  let initialPhase = hasExistingProfile ? PHASE.WELCOME : PHASE.LANDING;
-  if (syncPin && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
-  else if (syncPin && profiles[activeProfileId]) initialPhase = PHASE.PLACEMENT;
-  else if (!syncPin && activeProfileId && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
-  return { profiles, activeProfileId, appSettings, syncPin, initialPhase };
+  let initialPhase = (hasExistingProfile && staySignedIn) ? PHASE.WELCOME : PHASE.LANDING;
+  if (staySignedIn && syncPin && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
+  else if (staySignedIn && syncPin && profiles[activeProfileId]) initialPhase = PHASE.PLACEMENT;
+  else if (staySignedIn && !syncPin && activeProfileId && profiles[activeProfileId]?.placementDone) initialPhase = PHASE.APP;
+  return { profiles, activeProfileId, appSettings, syncPin, staySignedIn, initialPhase };
 }
 
 // ── Misc helpers ──────────────────────────────────────────────────────────────
@@ -1152,6 +1160,7 @@ export default function App() {
   const [profiles, setProfiles] = useState(loaded.profiles);
   const [activeProfileId, setActiveProfileId] = useState(loaded.activeProfileId);
   const [appSettings, setAppSettings] = useState(loaded.appSettings);
+  const [staySignedIn, setStaySignedIn] = useState(loaded.staySignedIn);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [practiceId, setPracticeId] = useState(null); // null = active level
   // PIN entry screen state
@@ -1229,7 +1238,7 @@ export default function App() {
   const generatedProblems = useMemo(() => buildProblems(currentLevelId, masteredIds, isSpeedPhase), [currentLevelId, masteredIds, isSpeedPhase]);
   const problems = customProblems !== null ? customProblems : generatedProblems;
 
-  useEffect(() => { safeWrite({ profiles, activeProfileId, appSettings, syncPin }); }, [profiles, activeProfileId, appSettings, syncPin]);
+  useEffect(() => { safeWrite({ profiles, activeProfileId, appSettings, syncPin, staySignedIn }); }, [profiles, activeProfileId, appSettings, syncPin, staySignedIn]);
 
 
   // Cloud sync — push to Firestore whenever profiles change (debounced 2s)
@@ -1334,10 +1343,11 @@ export default function App() {
     setProfiles(prev => ({ ...prev, [id]: newProfile }));
     setActiveProfileId(id);
     setSyncPin(pin);
+    setStaySignedIn(true);
     setAppPhase(PHASE.PLACEMENT);
   }
 
-  async function handlePinEntry(pin) {
+  async function handlePinEntry(pin, keepSignedIn = true) {
     setPinLoading(true);
     setPinLoadError("");
     try {
@@ -1348,6 +1358,7 @@ export default function App() {
         setActiveProfileId(data.activeProfileId || pin);
         if (data.appSettings) setAppSettings(data.appSettings);
         setSyncPin(pin);
+        setStaySignedIn(keepSignedIn);
         const profile = (data.profiles || {})[data.activeProfileId || pin];
         setAppPhase(profile?.placementDone ? PHASE.APP : PHASE.PLACEMENT);
       } else {
@@ -1357,6 +1368,7 @@ export default function App() {
         setProfiles(prev => ({ ...prev, [id]: newProfile }));
         setActiveProfileId(id);
         setSyncPin(pin);
+        setStaySignedIn(keepSignedIn);
         setAppPhase(PHASE.PLACEMENT);
       }
     } catch {
@@ -2540,6 +2552,13 @@ export default function App() {
                     <div style={{ ...S.sub, color: syncStatus==="saved"?C.green:syncStatus==="error"?C.red:syncStatus==="syncing"?C.gold:C.textSub }}>
                       {syncStatus==="saved"?"✓ Saved to cloud":syncStatus==="error"?"✗ Sync error":syncStatus==="syncing"?"↑ Syncing…":syncPin?"Cloud sync active":"No PIN — progress saved locally only"}
                     </div>
+                  </div>
+                </div>
+                <div style={{ ...S.flat, marginBottom:14 }}>
+                  <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>Sign out</div>
+                  <p style={S.sub}>Returns to the home screen. Your progress is saved and you can sign back in with your PIN.</p>
+                  <div style={{ marginTop:10 }}>
+                    <button onClick={() => { setStaySignedIn(false); setAppPhase(PHASE.LANDING); }} className="fun-btn" style={S.btn("#7c3aed","#3b0764")}>Sign Out</button>
                   </div>
                 </div>
                 <div style={S.flat}>
