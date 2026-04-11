@@ -231,11 +231,11 @@ const TIER_INFO = {
 };
 
 const CHARACTERS = [
-  { id:"mage",    label:"Mage",    desc:"Spell-caster",     color:"#a855f7" },
-  { id:"knight",  label:"Knight",  desc:"Brave warrior",    color:"#f59e0b" },
-  { id:"archer",  label:"Archer",  desc:"Sharp-eyed rogue", color:"#22c55e" },
-  { id:"scholar", label:"Scholar", desc:"Book-reader",      color:"#3b82f6" },
-  { id:"bard",    label:"Bard",    desc:"Music-maker",      color:"#ef4444" },
+  { id:"mage",    label:"Mage",    desc:"Spell-caster",     color:"#a855f7", hover:"Casts lightning-fast spells to zap tricky maths problems. Loves multiplying by 9." },
+  { id:"knight",  label:"Knight",  desc:"Brave warrior",    color:"#f59e0b", hover:"Charges headfirst into hard questions. Never gives up. Shield-certified in times tables." },
+  { id:"archer",  label:"Archer",  desc:"Sharp-eyed rogue", color:"#22c55e", hover:"Spots patterns from a mile away. Deadly accurate with fractions and number bonds." },
+  { id:"scholar", label:"Scholar", desc:"Book-reader",      color:"#3b82f6", hover:"Has read every maths textbook twice. Methodical, precise, and secretly very cool." },
+  { id:"bard",    label:"Bard",    desc:"Music-maker",      color:"#ef4444", hover:"Turns every maths session into a performance. Counts beats, rhythms, and remainders." },
 ];
 
 function computeNewBadges(profile, sessionData) {
@@ -387,6 +387,7 @@ function buildPlacementProgress(placedLevelId) {
 
 // ── LandingPage ───────────────────────────────────────────────────────────────
 function LandingPage({ onStart, onReturn }) {
+  const [hoveredChar, setHoveredChar] = React.useState(null);
   const PX = "'Press Start 2P', monospace";
   const bg = "#0d0a1a";
   const bgAlt = "#120e24";
@@ -499,16 +500,33 @@ function LandingPage({ onStart, onReturn }) {
             Every player picks a pixel art character at signup. Your hero reacts to correct answers and cheers you on through every level.
           </p>
           <div style={{ display:"flex", justifyContent:"center", gap:16, flexWrap:"wrap" }}>
-            {CHARACTERS.map(ch => (
-              <div key={ch.id} style={{ textAlign:"center", padding:"16px 12px", border:`3px solid ${border}`,
-                background:bg, minWidth:100, flex:"0 0 auto" }}>
-                <img src={`/char-${ch.id}.png`} alt={ch.label}
-                  style={{ imageRendering:"pixelated", width:72, height:72, display:"block", margin:"0 auto 8px",
-                    filter:`drop-shadow(0 0 8px ${ch.color}66)` }} />
-                <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
-                <div style={{ fontSize:11, color:textSub, fontWeight:700, marginTop:4 }}>{ch.desc}</div>
-              </div>
-            ))}
+            {CHARACTERS.map(ch => {
+              const hovered = hoveredChar === ch.id;
+              return (
+                <div key={ch.id}
+                  onMouseEnter={() => setHoveredChar(ch.id)}
+                  onMouseLeave={() => setHoveredChar(null)}
+                  style={{ textAlign:"center", padding:"16px 12px",
+                    border:`3px solid ${hovered ? ch.color : border}`,
+                    background: hovered ? `${ch.color}14` : bg,
+                    minWidth:130, flex:"0 0 auto", cursor:"default",
+                    boxShadow: hovered ? `0 0 20px ${ch.color}44, 4px 4px 0 #06030f` : "4px 4px 0 #06030f",
+                    transform: hovered ? "scale(1.08) translateY(-4px)" : "scale(1)",
+                    transition:"transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease" }}>
+                  <img src={`/char-${ch.id}.png`} alt={ch.label}
+                    style={{ imageRendering:"pixelated",
+                      width: hovered ? 88 : 72, height: hovered ? 88 : 72,
+                      display:"block", margin:"0 auto 8px",
+                      transition:"width 0.15s ease, height 0.15s ease",
+                      filter:`drop-shadow(0 0 ${hovered ? 14 : 8}px ${ch.color}${hovered ? "bb" : "66"})` }} />
+                  <div style={{ fontFamily:PX, fontSize:8, color:ch.color, lineHeight:1.8 }}>{ch.label}</div>
+                  {hovered
+                    ? <div style={{ fontSize:11, color:text, fontWeight:700, marginTop:6, lineHeight:1.5, maxWidth:120 }}>{ch.hover}</div>
+                    : <div style={{ fontSize:11, color:textSub, fontWeight:700, marginTop:4 }}>{ch.desc}</div>
+                  }
+                </div>
+              );
+            })}
           </div>
         </Section>
       </div>
