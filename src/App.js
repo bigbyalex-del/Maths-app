@@ -1,5 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import "./App.css";
 import { db } from "./firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
