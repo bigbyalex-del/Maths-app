@@ -446,16 +446,31 @@ function LandingPage({ onStart, onReturn }) {
         backgroundPosition:"center top", padding:"56px 24px 48px" }}>
         <div style={{ position:"absolute", inset:0, background:"rgba(13,10,26,0.80)" }} />
         <div style={{ position:"relative", textAlign:"center", maxWidth:640, margin:"0 auto" }}>
-          <img src="/logo-crest.png" alt="Get Maths Mastery crest"
-            style={{ imageRendering:"pixelated", width:72, height:72, marginBottom:12,
-              filter:"drop-shadow(0 0 16px rgba(251,191,36,0.5))" }} />
-          <div style={{ fontFamily:PX, fontSize:8, color:textSub, letterSpacing:3, marginBottom:10, lineHeight:2 }}>
+          {/* Logo lockup — matches in-app header */}
+          <div style={{ display:"inline-flex", alignItems:"center", gap:20, marginBottom:20 }}>
+            <img src="/logo-crest.png" alt="Get Maths Mastery crest"
+              style={{ imageRendering:"pixelated", width:96, height:96,
+                filter:"drop-shadow(0 0 20px rgba(251,191,36,0.6)) drop-shadow(0 0 8px rgba(196,181,253,0.4))" }} />
+            <div style={{ textAlign:"left" }}>
+              <div style={{ fontFamily:PX, fontSize:10, color:gold, letterSpacing:"0.18em", marginBottom:6, opacity:0.75 }}>
+                ★ GET ★
+              </div>
+              <div style={{ fontFamily:PX, lineHeight:1.15 }}>
+                <div style={{ fontSize:30, color:gold, letterSpacing:"0.05em",
+                  textShadow:"0 0 24px rgba(251,191,36,0.8), 0 0 48px rgba(251,191,36,0.4)" }}
+                  className="title-glow flicker">
+                  MATHS
+                </div>
+                <div style={{ fontSize:30, color:purpleLight, letterSpacing:"0.05em",
+                  textShadow:`0 0 24px ${purpleLight}88, 0 0 48px ${purpleLight}44` }}>
+                  MASTERY
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{ fontFamily:PX, fontSize:8, color:textSub, letterSpacing:3, marginBottom:14, lineHeight:2 }}>
             FREE · NO ADS · NO SUBSCRIPTION
           </div>
-          <h1 style={{ fontFamily:PX, fontSize:18, color:gold, lineHeight:1.7, marginBottom:10,
-            textShadow:"0 0 24px rgba(251,191,36,0.7), 0 0 48px rgba(251,191,36,0.3)" }}>
-            Get Maths<br/>Mastery
-          </h1>
           <p style={{ fontSize:17, fontWeight:800, color:text, lineHeight:1.6, marginBottom:8 }}>
             The RPG maths app that turns practice into an adventure.
           </p>
